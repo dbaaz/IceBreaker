@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "343799886388",
+    "firebase_url": "https://icebreakerprot1.firebaseio.com",
+    "project_id": "icebreakerprot1",
+    "storage_bucket": "icebreakerprot1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:343799886388:android:a04eca78ef4090f3",
+        "android_client_info": {
+          "package_name": "com.arbiter.droid.icebreakerprot1"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "343799886388-jc23a4teeem0i40jrhavhl6og0j0fktb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAqttiPT0VyYtp9I0iUFWsrR_R_-KMblqY"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
