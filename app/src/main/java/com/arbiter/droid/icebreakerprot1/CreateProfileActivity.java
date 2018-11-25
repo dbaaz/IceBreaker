@@ -65,7 +65,7 @@ public class CreateProfileActivity extends AppCompatActivity {
             }
 
         };
-        i = new Intent(this, IndexActivity.class);
+        i = new Intent(this, ExtendedCreateProfileActivity.class);
         til.setOnClickListener(new View.OnClickListener() {
 
             @Override
