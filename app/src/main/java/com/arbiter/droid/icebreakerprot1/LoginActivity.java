@@ -86,6 +86,7 @@ public class LoginActivity extends Activity implements View.OnClickListener {
             b.putParcelable("accdet",account);
             profCreateInt.putExtra("accdetailbundle",b);
             startActivity(profCreateInt);
+            finish();
         } catch (ApiException e) {
             // The ApiException status code indicates the detailed failure reason.
             // Please refer to the GoogleSignInStatusCodes class reference for more information.

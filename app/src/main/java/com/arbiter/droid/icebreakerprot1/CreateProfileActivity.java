@@ -98,6 +98,7 @@ public class CreateProfileActivity extends AppCompatActivity {
                 }catch(Exception e){}
                 newUser(nametxt.getText().toString(), gender.getSelectedItem().toString(), dobinput.getText().toString(), interested.getSelectedItem().toString());
                 startActivity(i);
+                finish();
             }
         });
     }
