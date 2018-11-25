@@ -36,12 +36,11 @@ public class UsersViewActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_users_view);
         final ListView lv = findViewById(R.id.listViewmine);
-        DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
+        final DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
         final ArrayList<String> userArray = new ArrayList<>();
         final ArrayAdapter adap = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1,userArray);
         final SharedPreferences sharedPreferences = this.getSharedPreferences("Icebreak",0);
         final int mode = getIntent().getIntExtra("mode",-1);
-        Toast.makeText(this, mode+"", Toast.LENGTH_SHORT).show();
         if(mode==0){
         mDatabase.child("users").addValueEventListener(new ValueEventListener() {
             @Override
@@ -84,6 +83,34 @@ public class UsersViewActivity extends AppCompatActivity {
             });
 
         }
+        else if(mode==2)
+        {
+            this.setTitle("Your Pings");
+            final DatabaseReference childr = mDatabase.child("pings");
+            childr.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    Iterable<DataSnapshot> children = dataSnapshot.getChildren();
+                    Iterator<DataSnapshot> iterator = children.iterator();
+                    while(iterator.hasNext())
+                    {
+                        DataSnapshot next = iterator.next();
+                        if(next.child("to").getValue().equals(sharedPreferences.getString("saved_name",""))&&next.child("accepted").getValue().equals("no"))
+                        {
+                            userArray.add(next.child("from").getValue().toString());
+                        }
+                        adap.notifyDataSetChanged();
+                    }
+
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
+
+        }
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -93,13 +120,47 @@ public class UsersViewActivity extends AppCompatActivity {
                     i.putExtra("name",((TextView)view).getText());
                     startActivity(i);
                 }
-                else
+                else if(mode==1)
                 {
                     Intent i = new Intent(view.getContext(), ChatActivity.class);
                     i.putExtra("sender", sharedPreferences.getString("saved_name", ""));
                     i.putExtra("venname", ((TextView) view).getText());
                     i.putExtra("groupChat", "no");
                     startActivity(i);
+                }
+                else if(mode==2)
+                {
+                    final DatabaseReference childr = mDatabase.child("pings");
+                    childr.addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            Iterable<DataSnapshot> children = dataSnapshot.getChildren();
+                            Iterator<DataSnapshot> iterator = children.iterator();
+                            String name="";
+                            while(iterator.hasNext())
+                            {
+                                DataSnapshot next = iterator.next();
+
+                                if(next.child("to").getValue().toString().equals(sharedPreferences.getString("saved_name",""))&&next.child("accepted").getValue().toString().equals("no"))
+                                {
+                                    String s = next.getKey().toString();
+                                    childr.child(s).child("accepted").setValue("yes");
+                                    name = next.child("from").getValue().toString();
+                                    //break;
+                                }
+                                adap.notifyDataSetChanged();
+                            }
+                            Intent i = new Intent(getApplicationContext(), ViewProfileActivity.class);
+                            i.putExtra("name",name);
+                            startActivity(i);
+
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
                 }
             }
         });

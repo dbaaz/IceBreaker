@@ -47,6 +47,7 @@ public class IndexActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         FloatingActionButton fab = findViewById(R.id.floatingActionButton);
+        FloatingActionButton fab2 = findViewById(R.id.floatingActionButton3);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -55,7 +56,14 @@ public class IndexActivity extends AppCompatActivity
                 startActivity(i);
             }
         });
-
+        fab2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(v.getContext(),UsersViewActivity.class);
+                i.putExtra("mode",2);
+                startActivity(i);
+            }
+        });
         /*Button msgBtn = findViewById(R.id.button18);
         msgBtn.setOnClickListener(new View.OnClickListener() {
             @Override

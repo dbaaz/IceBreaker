@@ -48,9 +48,9 @@
             android:name=".ViewProfileActivity"
             android:label="@string/title_activity_view_profile"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".ExtendedCreateProfileActivity"
-            android:label="Your Bio"
-            ></activity>
+        <activity
+            android:name=".ExtendedCreateProfileActivity"
+            android:label="Your Bio" />
     </application>
 
 </manifest>
