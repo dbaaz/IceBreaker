@@ -146,7 +146,7 @@ public class UsersViewActivity extends AppCompatActivity {
                                     String s = next.getKey().toString();
                                     childr.child(s).child("accepted").setValue("yes");
                                     name = next.child("from").getValue().toString();
-                                    //break;
+
                                 }
                                 adap.notifyDataSetChanged();
                             }

@@ -71,6 +71,8 @@ public class ViewProfileActivity extends AppCompatActivity {
                                 result[0]=1;
                             else if(from.equals(sharedPrefs.getString("saved_name", "")) && to.equals(name) && accepted.equals("yes"))
                                 result[0]=2;
+                            else if(from.equals(name) && to.equals(sharedPrefs.getString("saved_name", "")) && accepted.equals("yes"))
+                                result[0]=2;
                         }
                         if(result[0]==0) {
                             DatabaseReference tmp = fd2.push();
