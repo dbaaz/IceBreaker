@@ -4,9 +4,12 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Handler;
+import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -17,16 +20,22 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Random;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static com.arbiter.droid.icebreakerprot1.Common.databaseReference;
 import static com.arbiter.droid.icebreakerprot1.Common.randomString;
 
 public class ChatActivity extends AppCompatActivity {
@@ -67,7 +76,7 @@ public class ChatActivity extends AppCompatActivity {
         final EditText postmsg = findViewById(R.id.editText);
         final EditText chatlog = findViewById(R.id.editText2);
         final String name = sharedPref.getString("saved_name","");
-        final boolean[] initCall = {true,true};
+        //final boolean[] initCall = {true,true};
 
         final String text[] = new String[1];
         final NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(getApplicationContext(),"lol").setSmallIcon(R.drawable.ic_menu_send).setContentTitle("Icebreaker").setContentText("You may have new messages").setPriority(NotificationCompat.PRIORITY_DEFAULT);
@@ -76,68 +85,49 @@ public class ChatActivity extends AppCompatActivity {
             post.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    String rndString = randomString(15);
-                    initCall[1]=true;
-                    mDatabase.child(sender).child("chat").child(rndString).child("sender").setValue(name);
-                    mDatabase.child(sender).child("chat").child(rndString).child("text").setValue(postmsg.getText().toString());
-                    mDatabase.child(sender).child("chat").child(rndString).child("timestamp").setValue(String.valueOf(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())));
-                    mDatabase.child(sender).child("chat").child(rndString).child("receiver").setValue(receiver);
+                    DatabaseReference temp = mDatabase.child("pubs").child(sender).child("chat").push();
+                    temp.child("sender").setValue(name);
+                    temp.child("text").setValue(postmsg.getText().toString());
+                    temp.child("timestamp").setValue(String.valueOf(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())));
                     postmsg.setText("");
                 }
             });
-            mDatabase.child(sender).child("chat").addValueEventListener(new ValueEventListener() {
+            mDatabase.child("pubs").child(sender).child("chat").addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-
-                    text[0] = "";
-                    Iterable<DataSnapshot> chat = dataSnapshot.getChildren();
-                    Iterator<DataSnapshot> iterator = chat.iterator();
-                    GenericChatObject temp[] = new GenericChatObject[(int) dataSnapshot.getChildrenCount()];
-                    Toast.makeText(ChatActivity.this, dataSnapshot.getChildrenCount() + "", Toast.LENGTH_SHORT).show();
-                    int i = 0;
-                    while (iterator.hasNext()) {
-                        Iterable<DataSnapshot> children = iterator.next().getChildren();
-                        Iterator<DataSnapshot> iterator1 = children.iterator();
-
-                        while (iterator1.hasNext()) {
-                            temp[i] = new GenericChatObject();
-                            try {
-                                temp[i].receiver = iterator1.next().getValue().toString();
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                            try {
-                                temp[i].sender = iterator1.next().getValue().toString();
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                            try {
-                                temp[i].message = iterator1.next().getValue().toString();
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                            try {
-                                temp[i].timestamp = Long.parseLong(iterator1.next().getValue().toString());
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-
+                    Iterable<DataSnapshot> children = dataSnapshot.getChildren();
+                    Iterator<DataSnapshot> iterator = children.iterator();
+                    ArrayList<ArrayList<Object>> chatList = new ArrayList<>();
+                    while (iterator.hasNext())
+                    {
+                        DataSnapshot tmp = iterator.next();
+                        ArrayList<Object> tmpList = new ArrayList<>();
+                        tmpList.add(tmp.child("sender").getValue());
+                        tmpList.add(tmp.child("text").getValue());
+                        tmpList.add(tmp.child("timestamp").getValue());
+                        chatList.add(tmpList);
+                    }
+                    try
+                    {
+                    Collections.sort(chatList, new Comparator<ArrayList<Object>>() {
+                        @Override
+                        public int compare(ArrayList<Object> o1, ArrayList<Object> o2) {
+                            return Long.compare(Long.parseLong(o1.get(2).toString()),Long.parseLong(o2.get(2).toString()));
                         }
-                        i++;
+                    });}catch (NullPointerException e)
+                    {
+
                     }
-                    for (int k = 0; k < temp.length; k++) {
-                        for (int j = 1; j < temp.length; j++) {
-                            if (temp[j - 1].timestamp > temp[j].timestamp) {
-                                GenericChatObject tmp = temp[j - 1];
-                                temp[j - 1] = temp[j];
-                                temp[j] = tmp;
-                            }
-                        }
+                    String text="";
+                    try{
+                    for(ArrayList chatItem : chatList)
+                    {
+                        text += chatItem.get(0).toString() + ": " +chatItem.get(1).toString() + "\n";
+                    }}catch (NullPointerException e)
+                    {
+
                     }
-                    for (int k = 0; k < temp.length; k++) {
-                        text[0] += temp[k].sender + ": " + temp[k].message + "\n";
-                    }
-                    chatlog.setText(text[0]);
+                    chatlog.setText(text);
                 }
 
                 @Override
@@ -148,14 +138,43 @@ public class ChatActivity extends AppCompatActivity {
         }
         else
         {
-            final String dbName[]={sender+"|"+receiver};
-            mDatabase.child(sender+"|"+receiver).addListenerForSingleValueEvent(new ValueEventListener() {
+            final DatabaseReference[] node = {null};
+
+            /*try {
+                done.await();
+            }catch (InterruptedException e){
+
+            }*/
+            post.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    DatabaseReference temp = node[0].push();
+                    String key = temp.getParent().getKey();
+                    databaseReference.child("user_chats").child(key).child("participants").child("1").setValue(sender);
+                    databaseReference.child("user_chats").child(key).child("participants").child("2").setValue(receiver);
+                    temp.child("sender").setValue(sender);
+                    temp.child("text").setValue(postmsg.getText().toString());
+                    temp.child("timestamp").setValue(String.valueOf(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())));
+                    postmsg.setText("");
+
+                }
+            });
+            mDatabase.child("user_chats").addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    if(dataSnapshot.exists())
-                        dbName[0]=sender+"|"+receiver;
-                    else
-                        dbName[0]=receiver+"|"+sender;
+                    for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                        Toast.makeText(ChatActivity.this, dataSnapshot.getChildrenCount()+"", Toast.LENGTH_SHORT).show();
+                        if (snapshot.child("participants").exists()) {
+                            String send = snapshot.child("participants").child("1").getValue().toString();
+                            String recei = snapshot.child("participants").child("2").getValue().toString();
+                            if ((send.equals(sender) && recei.equals(receiver)) || (send.equals(receiver) && recei.equals(sender))) {
+                                node[0] = mDatabase.child("user_chats").child(snapshot.getKey());
+                                Log.v("myapp",node[0]+" 1");
+                                setNode(node[0]);
+                                break;
+                            }
+                        }
+                    }
                 }
 
                 @Override
@@ -163,131 +182,59 @@ public class ChatActivity extends AppCompatActivity {
 
                 }
             });
-            mDatabase.child(receiver+"|"+sender).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if(dataSnapshot.exists())
-                    dbName[0]=receiver+"|"+sender;
-                else
-                    dbName[0]=sender+"|"+receiver;
+            if(node[0]==null) {
+                Toast.makeText(this, "lulwa", Toast.LENGTH_SHORT).show();
+                node[0] = mDatabase.child("user_chats").child(randomString(15));
+                setNode(node[0]);
             }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-            post.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    mDatabase.child("users").child(sender).child("runningchats").addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                            boolean flag=false;
-                            Iterable<DataSnapshot> children = dataSnapshot.getChildren();
-                            Iterator<DataSnapshot> iterator = children.iterator();
-                            while(iterator.hasNext())
-                            {
-                                if(iterator.next().getValue().toString().equals(receiver))
-                                    flag=true;
-                            }
-                            if(!flag)
-                            {
-                                mDatabase.child("users").child(sender).child("runningchats").push().setValue(receiver);
-                                mDatabase.child("users").child(receiver).child("runningchats").push().setValue(sender);
-                            }
-                        }
-
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                        }
-                    });
-
-                    String rndString = randomString(15);
-                    initCall[1]=true;
-                    mDatabase.child(dbName[0]).child("chat").child(rndString).child("sender").setValue(name);
-                    mDatabase.child(dbName[0]).child("chat").child(rndString).child("text").setValue(postmsg.getText().toString());
-                    mDatabase.child(dbName[0]).child("chat").child(rndString).child("timestamp").setValue(String.valueOf(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())));
-                    mDatabase.child(dbName[0]).child("chat").child(rndString).child("receiver").setValue(receiver);
-                    postmsg.setText("");
-                }
-            });
-            final Handler handler = new Handler();
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    mDatabase.child(dbName[0]).child("chat").addValueEventListener(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-
-                            text[0] = "";
-                            Iterable<DataSnapshot> chat = dataSnapshot.getChildren();
-                            Iterator<DataSnapshot> iterator = chat.iterator();
-                            GenericChatObject temp[] = new GenericChatObject[(int) dataSnapshot.getChildrenCount()];
-                            Toast.makeText(ChatActivity.this, dataSnapshot.getChildrenCount() + "", Toast.LENGTH_SHORT).show();
-                            int i = 0;
-                            while (iterator.hasNext()) {
-                                Iterable<DataSnapshot> children = iterator.next().getChildren();
-                                Iterator<DataSnapshot> iterator1 = children.iterator();
-
-                                while (iterator1.hasNext()) {
-                                    temp[i] = new GenericChatObject();
-                                    try {
-                                        temp[i].receiver = iterator1.next().getValue().toString();
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-                                    }
-                                    try {
-                                        temp[i].sender = iterator1.next().getValue().toString();
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-                                    }
-                                    try {
-                                        temp[i].message = iterator1.next().getValue().toString();
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-                                    }
-                                    try {
-                                        temp[i].timestamp = Long.parseLong(iterator1.next().getValue().toString());
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-                                    }
-
-                                }
-                                i++;
-                            }
-                            for (int k = 0; k < temp.length; k++) {
-                                for (int j = 1; j < temp.length; j++) {
-                                    if (temp[j - 1].timestamp > temp[j].timestamp) {
-                                        GenericChatObject tmp = temp[j - 1];
-                                        temp[j - 1] = temp[j];
-                                        temp[j] = tmp;
-                                    }
-                                }
-                            }
-                            for (int k = 0; k < temp.length; k++) {
-                                text[0] += temp[k].sender + ": " + temp[k].message + "\n";
-                            }
-                            chatlog.setText(text[0]);
-                        }
-
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                        }
-                    });
-                }
-            },1000);
 
         }
      }
-}
+     void setNode(DatabaseReference ref)
+     {
+         ref.addValueEventListener(new ValueEventListener() {
+             @Override
+             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                 Toast.makeText(ChatActivity.this, "lul", Toast.LENGTH_SHORT).show();
+                 Iterable<DataSnapshot> children = dataSnapshot.getChildren();
+                 Iterator<DataSnapshot> iterator = children.iterator();
+                 ArrayList<ArrayList<Object>> chatList = new ArrayList<>();
+                 while (iterator.hasNext())
+                 {
+                     DataSnapshot tmp = iterator.next();
+                     ArrayList<Object> tmpList = new ArrayList<>();
+                     tmpList.add(tmp.child("sender").getValue());
+                     tmpList.add(tmp.child("text").getValue());
+                     tmpList.add(tmp.child("timestamp").getValue());
+                     chatList.add(tmpList);
+                 }
+                 try
+                 {
+                     Collections.sort(chatList, new Comparator<ArrayList<Object>>() {
+                         @Override
+                         public int compare(ArrayList<Object> o1, ArrayList<Object> o2) {
+                             return Long.compare(Long.parseLong(o1.get(2).toString()),Long.parseLong(o2.get(2).toString()));
+                         }
+                     });}catch (NullPointerException e)
+                 {
 
-class GenericChatObject
-{
-    String message;
-    long timestamp;
-    String sender;
-    String receiver;
+                 }
+                 String text="";
+                 try{
+                     for(ArrayList chatItem : chatList)
+                     {
+                         text += chatItem.get(0).toString() + ": " +chatItem.get(1).toString() + "\n";
+                     }}catch (NullPointerException e)
+                 {
+
+                 }
+                 EditText chatlog = findViewById(R.id.editText2);
+                 chatlog.setText(text);
+             }
+             @Override
+             public void onCancelled(@NonNull DatabaseError databaseError) {
+
+             }
+         });
+     }
 }

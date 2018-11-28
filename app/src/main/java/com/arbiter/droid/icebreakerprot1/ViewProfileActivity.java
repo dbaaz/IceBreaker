@@ -18,6 +18,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageException;
 import com.google.firebase.storage.StorageReference;
 
 import java.util.Iterator;
@@ -103,8 +104,14 @@ public class ViewProfileActivity extends AppCompatActivity {
         });
         final ImageView imgView = findViewById(R.id.picture);
         final ImageView imageView2 = findViewById(R.id.imageView2);
-        StorageReference storageReference = FirebaseStorage.getInstance().getReference().child("prof_img").child(name);
-        setStorageImageToImageView(storageReference,imageView2);
+        try {
+            StorageReference storageReference = FirebaseStorage.getInstance().getReference().child("prof_img").child(name);
+            setStorageImageToImageView(storageReference, imageView2);
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
 
     }
 }
