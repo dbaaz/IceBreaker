@@ -1,47 +1,49 @@
 package com.arbiter.droid.icebreakerprot1;
 
-import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.os.Build;
-import android.os.Handler;
-import android.provider.ContactsContract;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.squareup.picasso.Picasso;
+import com.stfalcon.chatkit.commons.ImageLoader;
+import com.stfalcon.chatkit.commons.models.IMessage;
+import com.stfalcon.chatkit.commons.models.IUser;
+import com.stfalcon.chatkit.messages.MessageHolders;
+import com.stfalcon.chatkit.messages.MessageInput;
+import com.stfalcon.chatkit.messages.MessagesList;
+import com.stfalcon.chatkit.messages.MessagesListAdapter;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.Date;
 import java.util.Iterator;
-import java.util.Random;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static com.arbiter.droid.icebreakerprot1.Common.databaseReference;
+import static com.arbiter.droid.icebreakerprot1.Common.getDate;
 import static com.arbiter.droid.icebreakerprot1.Common.randomString;
 
 public class ChatActivity extends AppCompatActivity {
     String receiver;
     String sender;
     String isGroup;
+    TextView senderLabel;
     ChatActivity()
     {
         this.isGroup="no";
@@ -65,24 +67,38 @@ public class ChatActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
+        senderLabel = findViewById(R.id.messageSender);
         receiver = getIntent().getStringExtra("venname");
         sender=getIntent().getStringExtra("sender");
         isGroup="no";
         isGroup=getIntent().getStringExtra("groupChat");
-        Button post = findViewById(R.id.button4);
+        MessageInput inputView = findViewById(R.id.inputView);
+        //Button post = findViewById(R.id.button4);
         createNotificationChannel();
         final DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
         SharedPreferences sharedPref = this.getSharedPreferences("Icebreak",0);
-        final EditText postmsg = findViewById(R.id.editText);
-        final EditText chatlog = findViewById(R.id.editText2);
+        //final EditText postmsg = findViewById(R.id.editText);
+        //final EditText chatlog = findViewById(R.id.editText2);
         final String name = sharedPref.getString("saved_name","");
-        //final boolean[] initCall = {true,true};
-
-        final String text[] = new String[1];
         final NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(getApplicationContext(),"lol").setSmallIcon(R.drawable.ic_menu_send).setContentTitle("Icebreaker").setContentText("You may have new messages").setPriority(NotificationCompat.PRIORITY_DEFAULT);
         final NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
         if(isGroup.equals("yes")) {
-            post.setOnClickListener(new View.OnClickListener() {
+            ImageLoader imageLoader = new ImageLoader() {
+                @Override
+                public void loadImage(ImageView imageView, @Nullable String url, @Nullable Object payload) {
+                    Picasso.get().load(url).into(imageView);
+                }
+            };
+            MessageHolders holdersConfig = new MessageHolders();
+            holdersConfig.setIncomingTextLayout(R.layout.item_custom_incoming_text_message);
+            holdersConfig.setOutcomingTextLayout(R.layout.item_custom_outcoming_text_message);
+            holdersConfig.setOutcomingTextConfig(CustomOutcomingTextMessageViewHolder.class,R.layout.item_custom_outcoming_text_message);
+            holdersConfig.setIncomingTextConfig(CustomIncomingTextMessageViewHolder.class,R.layout.item_custom_incoming_text_message);
+            final MessagesListAdapter<Message> adapter = new MessagesListAdapter<>(name,holdersConfig,imageLoader);
+            MessagesList messagesList=findViewById(R.id.messagesList);
+            messagesList.setAdapter(adapter);
+
+            /*post.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     DatabaseReference temp = mDatabase.child("pubs").child(sender).child("chat").push();
@@ -91,6 +107,16 @@ public class ChatActivity extends AppCompatActivity {
                     temp.child("timestamp").setValue(String.valueOf(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())));
                     postmsg.setText("");
                 }
+            });*/
+            inputView.setInputListener(new MessageInput.InputListener() {
+                @Override
+                public boolean onSubmit(CharSequence input) {
+                    DatabaseReference temp = mDatabase.child("pubs").child(sender).child("chat").push();
+                    temp.child("sender").setValue(name);
+                    temp.child("text").setValue(input.toString());
+                    temp.child("timestamp").setValue(String.valueOf(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())));
+                    return true;
+                }
             });
             mDatabase.child("pubs").child(sender).child("chat").addValueEventListener(new ValueEventListener() {
                 @Override
@@ -98,6 +124,7 @@ public class ChatActivity extends AppCompatActivity {
                     Iterable<DataSnapshot> children = dataSnapshot.getChildren();
                     Iterator<DataSnapshot> iterator = children.iterator();
                     ArrayList<ArrayList<Object>> chatList = new ArrayList<>();
+                    Log.v("myapp","lul");
                     while (iterator.hasNext())
                     {
                         DataSnapshot tmp = iterator.next();
@@ -107,7 +134,7 @@ public class ChatActivity extends AppCompatActivity {
                         tmpList.add(tmp.child("timestamp").getValue());
                         chatList.add(tmpList);
                     }
-                    try
+                    /*try
                     {
                     Collections.sort(chatList, new Comparator<ArrayList<Object>>() {
                         @Override
@@ -117,17 +144,20 @@ public class ChatActivity extends AppCompatActivity {
                     });}catch (NullPointerException e)
                     {
 
-                    }
+                    }*/
                     String text="";
                     try{
+                        adapter.clear();
                     for(ArrayList chatItem : chatList)
                     {
-                        text += chatItem.get(0).toString() + ": " +chatItem.get(1).toString() + "\n";
+                        //text += chatItem.get(0).toString() + ": " +chatItem.get(1).toString() + "\n";
+                        Log.v("myapp",chatList.size()+"");
+                        adapter.addToStart(new Message(chatItem.get(0).toString(),chatItem.get(1).toString(),new Author(chatItem.get(0).toString(),chatItem.get(0).toString()),getDate(Long.parseLong(chatItem.get(2).toString()))),false);
                     }}catch (NullPointerException e)
                     {
 
                     }
-                    chatlog.setText(text);
+                    //chatlog.setText(text);
                 }
 
                 @Override
@@ -139,13 +169,7 @@ public class ChatActivity extends AppCompatActivity {
         else
         {
             final DatabaseReference[] node = {null};
-
-            /*try {
-                done.await();
-            }catch (InterruptedException e){
-
-            }*/
-            post.setOnClickListener(new View.OnClickListener() {
+            /*post.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     DatabaseReference temp = node[0].push();
@@ -158,6 +182,19 @@ public class ChatActivity extends AppCompatActivity {
                     postmsg.setText("");
 
                 }
+            });*/
+            inputView.setInputListener(new MessageInput.InputListener() {
+                @Override
+                public boolean onSubmit(CharSequence input) {
+                    DatabaseReference temp = node[0].push();
+                    String key = temp.getParent().getKey();
+                    databaseReference.child("user_chats").child(key).child("participants").child("1").setValue(sender);
+                    databaseReference.child("user_chats").child(key).child("participants").child("2").setValue(receiver);
+                    temp.child("sender").setValue(sender);
+                    temp.child("text").setValue(input.toString());
+                    temp.child("timestamp").setValue(String.valueOf(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())));
+                    return true;
+                }
             });
             mDatabase.child("user_chats").addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
@@ -169,7 +206,6 @@ public class ChatActivity extends AppCompatActivity {
                             String recei = snapshot.child("participants").child("2").getValue().toString();
                             if ((send.equals(sender) && recei.equals(receiver)) || (send.equals(receiver) && recei.equals(sender))) {
                                 node[0] = mDatabase.child("user_chats").child(snapshot.getKey());
-                                Log.v("myapp",node[0]+" 1");
                                 setNode(node[0]);
                                 break;
                             }
@@ -183,8 +219,7 @@ public class ChatActivity extends AppCompatActivity {
                 }
             });
             if(node[0]==null) {
-                Toast.makeText(this, "lulwa", Toast.LENGTH_SHORT).show();
-                node[0] = mDatabase.child("user_chats").child(randomString(15));
+                node[0] = mDatabase.child("user_chats").child(randomString(25));
                 setNode(node[0]);
             }
 
@@ -195,10 +230,18 @@ public class ChatActivity extends AppCompatActivity {
          ref.addValueEventListener(new ValueEventListener() {
              @Override
              public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                 Toast.makeText(ChatActivity.this, "lul", Toast.LENGTH_SHORT).show();
                  Iterable<DataSnapshot> children = dataSnapshot.getChildren();
                  Iterator<DataSnapshot> iterator = children.iterator();
                  ArrayList<ArrayList<Object>> chatList = new ArrayList<>();
+                 ImageLoader imageLoader = new ImageLoader() {
+                     @Override
+                     public void loadImage(ImageView imageView, @Nullable String url, @Nullable Object payload) {
+                         Picasso.get().load(url).into(imageView);
+                     }
+                 };
+                 MessagesListAdapter<Message> adapter = new MessagesListAdapter<>(sender,imageLoader);
+                 MessagesList messagesList=findViewById(R.id.messagesList);
+                 messagesList.setAdapter(adapter);
                  while (iterator.hasNext())
                  {
                      DataSnapshot tmp = iterator.next();
@@ -208,7 +251,7 @@ public class ChatActivity extends AppCompatActivity {
                      tmpList.add(tmp.child("timestamp").getValue());
                      chatList.add(tmpList);
                  }
-                 try
+                 /*try
                  {
                      Collections.sort(chatList, new Comparator<ArrayList<Object>>() {
                          @Override
@@ -218,18 +261,20 @@ public class ChatActivity extends AppCompatActivity {
                      });}catch (NullPointerException e)
                  {
 
-                 }
+                 }*/
                  String text="";
                  try{
+                     adapter.clear();
                      for(ArrayList chatItem : chatList)
                      {
-                         text += chatItem.get(0).toString() + ": " +chatItem.get(1).toString() + "\n";
+                         //text += chatItem.get(0).toString() + ": " +chatItem.get(1).toString() + "\n";
+                         adapter.addToStart(new Message(chatItem.get(2).toString(),chatItem.get(1).toString(),new Author(chatItem.get(0).toString(),chatItem.get(0).toString()),getDate(Long.parseLong(chatItem.get(2).toString()))),false);
                      }}catch (NullPointerException e)
                  {
 
                  }
-                 EditText chatlog = findViewById(R.id.editText2);
-                 chatlog.setText(text);
+                 //EditText chatlog = findViewById(R.id.editText2);
+                 //chatlog.setText(text);
              }
              @Override
              public void onCancelled(@NonNull DatabaseError databaseError) {
@@ -237,4 +282,94 @@ public class ChatActivity extends AppCompatActivity {
              }
          });
      }
+}
+class Message implements IMessage
+{
+    String id;
+    String text;
+    Author author;
+    Date createdAt;
+    Message(String id, String text,Author author,Date createdAt)
+    {
+        this.id=id;
+        this.text=text;
+        this.author=author;
+        this.createdAt=createdAt;
+    }
+    @Override
+    public String getId() {
+        return id;
+    }
+
+    @Override
+    public String getText() {
+        return text;
+    }
+
+    @Override
+    public Author getUser() {
+        return author;
+    }
+
+    @Override
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+}
+class Author implements IUser
+{
+    String id;
+    String name;
+    String avatar;
+    Author(String id,String name)
+    {
+        this.id=id;
+        this.name=name;
+    }
+    @Override
+    public String getId() {
+        return id;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String getAvatar() {
+        return null;
+    }
+}
+class CustomOutcomingTextMessageViewHolder extends MessageHolders.OutcomingTextMessageViewHolder<Message>
+{
+    protected TextView senderTextView;
+    protected String senderName;
+    CustomOutcomingTextMessageViewHolder(View itemView, Object payload)
+    {
+        super(itemView,payload);
+        senderTextView = itemView.findViewById(R.id.messageSender);
+    }
+    @Override
+    public void onBind(Message message)
+    {
+        super.onBind(message);
+        senderTextView.setText(message.id);
+    }
+}
+class CustomIncomingTextMessageViewHolder extends MessageHolders.IncomingTextMessageViewHolder<Message>
+{
+    protected TextView sender;
+    CustomIncomingTextMessageViewHolder(View itemView, Object payload)
+    {
+        super(itemView,payload);
+        sender = itemView.findViewById(R.id.messageSender);
+    }
+    @Override
+    public void onBind(Message message)
+    {
+        super.onBind(message);
+        sender.setText(message.id);
+    }
+
 }
