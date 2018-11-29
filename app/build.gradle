@@ -44,5 +44,6 @@ dependencies {
     implementation 'com.google.firebase:firebase-database:16.0.4'
     implementation 'com.google.firebase:firebase-storage:16.0.4'
     implementation 'com.firebaseui:firebase-ui-storage:4.1.0'
+    implementation 'com.github.stfalcon:chatkit:0.3.3'
 }
 apply plugin: 'com.google.gms.google-services'
