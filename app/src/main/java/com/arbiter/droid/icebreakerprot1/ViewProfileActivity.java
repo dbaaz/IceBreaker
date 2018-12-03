@@ -18,8 +18,11 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageException;
 import com.google.firebase.storage.StorageReference;
+import com.jakewharton.threetenabp.AndroidThreeTen;
+
+import org.threeten.bp.LocalDate;
+import org.threeten.bp.Period;
 
 import java.util.Iterator;
 
@@ -30,6 +33,7 @@ public class ViewProfileActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        AndroidThreeTen.init(this);
         setContentView(R.layout.activity_view_profile);
         final String name;
         final SharedPreferences sharedPrefs = this.getSharedPreferences("Icebreak",0);
@@ -39,13 +43,22 @@ public class ViewProfileActivity extends AppCompatActivity {
         Toast.makeText(this, name, Toast.LENGTH_SHORT).show();
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         final TextView bioTextView = findViewById(R.id.textView4);
-        final TextView genTextView = findViewById(R.id.textView9);
+        final TextView genTextView = findViewById(R.id.genderTextView);
+        final TextView interTextView = findViewById(R.id.interestedTextView);
+        final TextView ageTextView = findViewById(R.id.ageText);
         setSupportActionBar(toolbar);
         fd.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                String[] tmp = dataSnapshot.child("dob").getValue().toString().split("/");
+                int[] dob = new int[3];
+                for(int i=0;i<3;i++)
+                    dob[i]=Integer.parseInt(tmp[i]);
+                int age = Period.between(LocalDate.of(dob[2],dob[1],dob[0]),LocalDate.now()).getYears();
                 bioTextView.setText(dataSnapshot.child("bio").getValue().toString());
                 genTextView.setText(dataSnapshot.child("gender").getValue().toString());
+                interTextView.setText(dataSnapshot.child("interested").getValue().toString());
+                ageTextView.setText(age+"");
             }
 
             @Override
@@ -102,8 +115,7 @@ public class ViewProfileActivity extends AppCompatActivity {
 
             }
         });
-        final ImageView imgView = findViewById(R.id.picture);
-        final ImageView imageView2 = findViewById(R.id.imageView2);
+        final ImageView imageView2 = findViewById(R.id.picture);
         try {
             StorageReference storageReference = FirebaseStorage.getInstance().getReference().child("prof_img").child(name);
             setStorageImageToImageView(storageReference, imageView2);

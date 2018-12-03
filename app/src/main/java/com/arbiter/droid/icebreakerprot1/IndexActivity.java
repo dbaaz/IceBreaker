@@ -190,7 +190,12 @@ public class IndexActivity extends AppCompatActivity
             }
         } else if (id == R.id.profmenuitem) {
             Intent inten = new Intent(this, CreateProfileActivity.class);
+            inten.putExtra("editmode","yes");
             startActivity(inten);
+        }
+        else if(id == R.id.menuPictures)
+        {
+
         }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);

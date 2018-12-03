@@ -44,7 +44,7 @@ public class ChatActivity extends AppCompatActivity {
     String sender;
     String isGroup;
     TextView senderLabel;
-    ChatActivity()
+    public ChatActivity()
     {
         this.isGroup="no";
     }
@@ -89,6 +89,8 @@ public class ChatActivity extends AppCompatActivity {
                     Picasso.get().load(url).into(imageView);
                 }
             };
+            DatabaseReference databaseReference=FirebaseDatabase.getInstance().getReference().child("pubs");
+            final DatabaseReference node[] = {null};
             MessageHolders holdersConfig = new MessageHolders();
             holdersConfig.setIncomingTextLayout(R.layout.item_custom_incoming_text_message);
             holdersConfig.setOutcomingTextLayout(R.layout.item_custom_outcoming_text_message);
@@ -97,6 +99,29 @@ public class ChatActivity extends AppCompatActivity {
             final MessagesListAdapter<Message> adapter = new MessagesListAdapter<>(name,holdersConfig,imageLoader);
             MessagesList messagesList=findViewById(R.id.messagesList);
             messagesList.setAdapter(adapter);
+            databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    Iterable<DataSnapshot> children = dataSnapshot.getChildren();
+                    Iterator<DataSnapshot> iterator = children.iterator();
+                    while(iterator.hasNext())
+                    {
+                        DataSnapshot next = iterator.next();
+                        if(next.child("name").getValue().toString().equals(sender))
+                        {
+                            node[0]=next.getRef();
+                            setGroupNode(next.getRef(),adapter);
+                            break;
+                        }
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
+
 
             /*post.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -111,78 +136,18 @@ public class ChatActivity extends AppCompatActivity {
             inputView.setInputListener(new MessageInput.InputListener() {
                 @Override
                 public boolean onSubmit(CharSequence input) {
-                    DatabaseReference temp = mDatabase.child("pubs").child(sender).child("chat").push();
+                    DatabaseReference temp = node[0].child("chat").push();
                     temp.child("sender").setValue(name);
                     temp.child("text").setValue(input.toString());
                     temp.child("timestamp").setValue(String.valueOf(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())));
                     return true;
                 }
             });
-            mDatabase.child("pubs").child(sender).child("chat").addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    Iterable<DataSnapshot> children = dataSnapshot.getChildren();
-                    Iterator<DataSnapshot> iterator = children.iterator();
-                    ArrayList<ArrayList<Object>> chatList = new ArrayList<>();
-                    Log.v("myapp","lul");
-                    while (iterator.hasNext())
-                    {
-                        DataSnapshot tmp = iterator.next();
-                        ArrayList<Object> tmpList = new ArrayList<>();
-                        tmpList.add(tmp.child("sender").getValue());
-                        tmpList.add(tmp.child("text").getValue());
-                        tmpList.add(tmp.child("timestamp").getValue());
-                        chatList.add(tmpList);
-                    }
-                    /*try
-                    {
-                    Collections.sort(chatList, new Comparator<ArrayList<Object>>() {
-                        @Override
-                        public int compare(ArrayList<Object> o1, ArrayList<Object> o2) {
-                            return Long.compare(Long.parseLong(o1.get(2).toString()),Long.parseLong(o2.get(2).toString()));
-                        }
-                    });}catch (NullPointerException e)
-                    {
 
-                    }*/
-                    String text="";
-                    try{
-                        adapter.clear();
-                    for(ArrayList chatItem : chatList)
-                    {
-                        //text += chatItem.get(0).toString() + ": " +chatItem.get(1).toString() + "\n";
-                        Log.v("myapp",chatList.size()+"");
-                        adapter.addToStart(new Message(chatItem.get(0).toString(),chatItem.get(1).toString(),new Author(chatItem.get(0).toString(),chatItem.get(0).toString()),getDate(Long.parseLong(chatItem.get(2).toString()))),false);
-                    }}catch (NullPointerException e)
-                    {
-
-                    }
-                    //chatlog.setText(text);
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                }
-            });
         }
         else
         {
             final DatabaseReference[] node = {null};
-            /*post.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    DatabaseReference temp = node[0].push();
-                    String key = temp.getParent().getKey();
-                    databaseReference.child("user_chats").child(key).child("participants").child("1").setValue(sender);
-                    databaseReference.child("user_chats").child(key).child("participants").child("2").setValue(receiver);
-                    temp.child("sender").setValue(sender);
-                    temp.child("text").setValue(postmsg.getText().toString());
-                    temp.child("timestamp").setValue(String.valueOf(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())));
-                    postmsg.setText("");
-
-                }
-            });*/
             inputView.setInputListener(new MessageInput.InputListener() {
                 @Override
                 public boolean onSubmit(CharSequence input) {
@@ -273,9 +238,56 @@ public class ChatActivity extends AppCompatActivity {
                  {
 
                  }
-                 //EditText chatlog = findViewById(R.id.editText2);
-                 //chatlog.setText(text);
              }
+             @Override
+             public void onCancelled(@NonNull DatabaseError databaseError) {
+
+             }
+         });
+     }
+     void setGroupNode(DatabaseReference ref,final MessagesListAdapter<Message> adapter)
+     {
+         ref.child("chat").addValueEventListener(new ValueEventListener() {
+             @Override
+             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                 Iterable<DataSnapshot> children = dataSnapshot.getChildren();
+                 Iterator<DataSnapshot> iterator = children.iterator();
+                 ArrayList<ArrayList<Object>> chatList = new ArrayList<>();
+                 Log.v("myapp","lul");
+                 while (iterator.hasNext())
+                 {
+                     DataSnapshot tmp = iterator.next();
+                     ArrayList<Object> tmpList = new ArrayList<>();
+                     tmpList.add(tmp.child("sender").getValue());
+                     tmpList.add(tmp.child("text").getValue());
+                     tmpList.add(tmp.child("timestamp").getValue());
+                     chatList.add(tmpList);
+                 }
+                    /*try
+                    {
+                    Collections.sort(chatList, new Comparator<ArrayList<Object>>() {
+                        @Override
+                        public int compare(ArrayList<Object> o1, ArrayList<Object> o2) {
+                            return Long.compare(Long.parseLong(o1.get(2).toString()),Long.parseLong(o2.get(2).toString()));
+                        }
+                    });}catch (NullPointerException e)
+                    {
+
+                    }*/
+                 String text="";
+                 try{
+                     adapter.clear();
+                     for(ArrayList chatItem : chatList)
+                     {
+                         //text += chatItem.get(0).toString() + ": " +chatItem.get(1).toString() + "\n";
+                         Log.v("myapp",chatList.size()+"");
+                         adapter.addToStart(new Message(chatItem.get(0).toString(),chatItem.get(1).toString(),new Author(chatItem.get(0).toString(),chatItem.get(0).toString()),getDate(Long.parseLong(chatItem.get(2).toString()))),false);
+                     }}catch (NullPointerException e)
+                 {
+
+                 }
+             }
+
              @Override
              public void onCancelled(@NonNull DatabaseError databaseError) {
 
@@ -344,7 +356,6 @@ class Author implements IUser
 class CustomOutcomingTextMessageViewHolder extends MessageHolders.OutcomingTextMessageViewHolder<Message>
 {
     protected TextView senderTextView;
-    protected String senderName;
     CustomOutcomingTextMessageViewHolder(View itemView, Object payload)
     {
         super(itemView,payload);

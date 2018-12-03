@@ -185,7 +185,9 @@ public class VenueRecyclerViewFragment extends Fragment {
                 Iterator<DataSnapshot> iterator = children.iterator();
                 while(iterator.hasNext())
                 {
-                    modelList.add(new AbstractModel2(iterator.next().getValue().toString(),"No alcohol"));
+                    DataSnapshot next = iterator.next();
+                    String alcohol = next.child("alcohol").getValue().toString().equals("0") ? "No Alcohol" : "Alcohol Available";
+                    modelList.add(new AbstractModel2(next.child("name").getValue().toString(),alcohol));
                 }
                 mAdapter.notifyDataSetChanged();
             }
