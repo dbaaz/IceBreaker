@@ -52,6 +52,8 @@
         <activity
             android:name=".ExtendedCreateProfileActivity"
             android:label="Your Bio" />
+        <service android:name=".location.LocationService"
+            android:label="Location Service" />
     </application>
 
 </manifest>
