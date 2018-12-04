@@ -13,6 +13,14 @@ import com.yayandroid.locationmanager.constants.ProcessType;
 
 public class LocationService extends LocationBaseService {
 
+    public static final String ACTION_LOCATION_CHANGED = "com.yayandroid.locationmanager.sample.service.LOCATION_CHANGED";
+    public static final String ACTION_LOCATION_FAILED = "com.yayandroid.locationmanager.sample.service.LOCATION_FAILED";
+    public static final String ACTION_PROCESS_CHANGED = "com.yayandroid.locationmanager.sample.service.PROCESS_CHANGED";
+
+    public static final String EXTRA_LOCATION = "ExtraLocationField";
+    public static final String EXTRA_FAIL_TYPE = "ExtraFailTypeField";
+    public static final String EXTRA_PROCESS_TYPE = "ExtraProcessTypeField";
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
