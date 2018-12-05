@@ -2,27 +2,17 @@ package com.arbiter.droid.icebreakerprot1;
 
 import android.content.Context;
 import android.net.Uri;
-
 import android.os.Bundle;
-
-import android.support.v7.widget.LinearLayoutManager;
-
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.widget.DividerItemDecoration;
-import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
-
-import android.widget.Toast;
-import android.os.Handler;
-
-
-import android.view.ViewGroup;
-import android.view.MenuInflater;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 /**
  * A simple {@link Fragment} subclass.

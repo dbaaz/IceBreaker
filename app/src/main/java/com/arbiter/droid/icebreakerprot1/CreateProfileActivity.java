@@ -3,12 +3,10 @@ package com.arbiter.droid.icebreakerprot1;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.design.widget.TextInputEditText;
-import android.support.design.widget.TextInputLayout;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
@@ -17,6 +15,8 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -29,14 +29,18 @@ import com.squareup.picasso.Picasso;
 import com.yalantis.ucrop.UCrop;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
 
-import static com.arbiter.droid.icebreakerprot1.Common.imageViewtoByteArray;
-import static com.arbiter.droid.icebreakerprot1.Common.setStorageImageToImageView;
-import static com.arbiter.droid.icebreakerprot1.Common.uploadImage;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+
+import static com.arbiter.droid.icebreakerprot1.Common.compressImage;
+import static com.arbiter.droid.icebreakerprot1.Common.current_user;
+import static com.arbiter.droid.icebreakerprot1.Common.uploadAvatarImage;
 
 public class CreateProfileActivity extends AppCompatActivity {
     final Calendar myCalendar = Calendar.getInstance();
@@ -57,14 +61,14 @@ public class CreateProfileActivity extends AppCompatActivity {
         imgview = findViewById(R.id.imageView);
         FirebaseApp.initializeApp(this);
         til = findViewById(R.id.dobinput);
-        TextInputLayout nameedit = findViewById(R.id.textInputLayout);
+        final TextInputLayout nameedit = findViewById(R.id.textInputLayout);
         Button btn = findViewById(R.id.button);
         i = new Intent(this, ExtendedCreateProfileActivity.class);
         if(getIntent().hasExtra("editmode"))
         {
             StorageReference storageReference = FirebaseStorage.getInstance().getReference().child("/prof_img/" + sharedPref.getString("saved_name", ""));
             //Picasso.get().load(prof_img).into(imgview);
-            setStorageImageToImageView(storageReference,imgview);
+            //setStorageImageToImageView(storageReference,imgview);
             DatabaseReference firebaseDatabase = FirebaseDatabase.getInstance().getReference();
             firebaseDatabase.child("users").child(sharedPref.getString("saved_user","")).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
@@ -149,7 +153,14 @@ public class CreateProfileActivity extends AppCompatActivity {
                 mDatabase.child("users").child(nametxt.getText().toString()).child("dob").setValue(dobinput.getText().toString());
                 mDatabase.child("users").child(nametxt.getText().toString()).child("interested").setValue(interested.getSelectedItem().toString());
                 try {
-                    uploadImage("/prof_img/" + nametxt.getText().toString(), imageViewtoByteArray(imgview));
+                    Bitmap bitmap=((BitmapDrawable)imgview.getDrawable()).getBitmap();
+                    //uploadAvatarImage("/prof_img/" + nametxt.getText().toString(), imageViewtoByteArray(imgview));
+                    File tmp = new File(getCacheDir()+"temp.jpeg");
+                    FileOutputStream ostream = new FileOutputStream(tmp);
+                    bitmap.compress(Bitmap.CompressFormat.JPEG,100,ostream);
+                    ostream.close();
+                    current_user=nametxt.getText().toString();
+                    uploadAvatarImage("/prof_img/"+nametxt.getText().toString(),compressImage(tmp,getApplicationContext(),true));
                 }catch(Exception e){}
                 setUser(nametxt.getText().toString(), gender.getSelectedItem().toString(), dobinput.getText().toString(), interested.getSelectedItem().toString());
                 startActivity(i);

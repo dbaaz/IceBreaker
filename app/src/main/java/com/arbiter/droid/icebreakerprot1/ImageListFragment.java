@@ -3,11 +3,28 @@ package com.arbiter.droid.icebreakerprot1;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
+import com.facebook.shimmer.Shimmer;
+import com.facebook.shimmer.ShimmerDrawable;
+import com.facebook.shimmer.ShimmerFrameLayout;
+import com.google.android.flexbox.FlexboxLayout;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
+import com.squareup.picasso.Picasso;
+
+import java.io.File;
+import java.io.IOException;
+
+import androidx.fragment.app.Fragment;
+
+import static com.arbiter.droid.icebreakerprot1.Common.compressImage;
+import static com.arbiter.droid.icebreakerprot1.Common.databaseReference;
+import static com.arbiter.droid.icebreakerprot1.Common.getScreenHeight;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -22,13 +39,12 @@ public class ImageListFragment extends Fragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
-
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
-
+    FlexboxLayout flexboxLayout;
+    ShimmerFrameLayout shimmerFrameLayout;
     private OnFragmentInteractionListener mListener;
-
     public ImageListFragment() {
         // Required empty public constructor
     }
@@ -42,29 +58,98 @@ public class ImageListFragment extends Fragment {
      * @return A new instance of fragment ImageListFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static ImageListFragment newInstance(String param1, String param2) {
+    public static ImageListFragment newInstance() {
         ImageListFragment fragment = new ImageListFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
+        //args.putString(ARG_PARAM1, param1);
+        //args.putString(ARG_PARAM2, param2);
+        //fragment.setArguments(args);
         return fragment;
     }
+    void populateList(String target_user)
+    {
+        final FlexboxLayout.LayoutParams lp = new FlexboxLayout.LayoutParams(FlexboxLayout.LayoutParams.MATCH_PARENT, FlexboxLayout.LayoutParams.MATCH_PARENT);
+        databaseReference.child("users").child(target_user).child("image_url").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                flexboxLayout.removeAllViews();
+                Iterable<DataSnapshot> children = dataSnapshot.getChildren();
+                for(DataSnapshot child:children)
+                {
+                    String url = child.child("url").getValue().toString();
+                    ImageView tmp = new ImageView(getContext());
+                    lp.setHeight(getScreenHeight()/2);
+                    tmp.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                    tmp.setLayoutParams(lp);
+                    Shimmer shimmer = new Shimmer.ColorHighlightBuilder().build();
+                    ShimmerDrawable tempShimmer = new ShimmerDrawable();
+                    tempShimmer.setShimmer(shimmer);
+                    Picasso.get().load(url).placeholder(tempShimmer).into(tmp);
+                    flexboxLayout.addView(tmp);
+                }
+            }
 
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+    void updateList(String url)
+    {
+        final FlexboxLayout.LayoutParams lp = new FlexboxLayout.LayoutParams(FlexboxLayout.LayoutParams.MATCH_PARENT, FlexboxLayout.LayoutParams.MATCH_PARENT);
+        ImageView tmp = new ImageView(getContext());
+        lp.setHeight(getScreenHeight()/2);
+        tmp.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        tmp.setLayoutParams(lp);
+        Shimmer shimmer = new Shimmer.ColorHighlightBuilder().build();
+        ShimmerDrawable tempShimmer = new ShimmerDrawable();
+        tempShimmer.setShimmer(shimmer);
+        try {
+            Picasso.get().load(compressImage(new File(url),getContext(),false)).placeholder(tempShimmer).into(tmp);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        flexboxLayout.addView(tmp);
+    }
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_image_list, container, false);
+
+        View rootview = inflater.inflate(R.layout.fragment_image_list, container, false);
+        flexboxLayout=rootview.findViewById(R.id.flexbox_layout);
+        if(getActivity() instanceof  ImageListActivity)
+        {
+            ((ImageListActivity)getActivity()).setOnFragmentInteract(new ImageListActivity.FragmentInterface() {
+                @Override
+                public void onFragmentInteract(Bundle bundle) {
+                    if(bundle.containsKey("target_user"))
+                        populateList(bundle.getString("target_user"));
+                    else if(bundle.containsKey("update_path"))
+                        updateList(bundle.getString("update_path"));
+                }
+            });
+        }
+        else if(getActivity() instanceof ViewProfileActivity)
+        {
+            ((ViewProfileActivity)getActivity()).setOnFragmentInteract(new ViewProfileActivity.FragmentInterface() {
+                @Override
+                public void onFragmentInteract(Bundle bundle) {
+                    if(bundle.containsKey("target_user"))
+                        populateList(bundle.getString("target_user"));
+                    else if(bundle.containsKey("update_path"))
+                        updateList(bundle.getString("update_path"));
+                }
+            });
+        }
+
+        return rootview;
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -80,8 +165,8 @@ public class ImageListFragment extends Fragment {
         if (context instanceof OnFragmentInteractionListener) {
             mListener = (OnFragmentInteractionListener) context;
         } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
+            //throw new RuntimeException(context.toString()
+            //        + " must implement OnFragmentInteractionListener");
         }
     }
 

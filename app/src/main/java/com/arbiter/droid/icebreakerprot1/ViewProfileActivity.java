@@ -3,33 +3,39 @@ package com.arbiter.droid.icebreakerprot1;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.facebook.shimmer.Shimmer;
+import com.facebook.shimmer.ShimmerDrawable;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
 import com.jakewharton.threetenabp.AndroidThreeTen;
+import com.squareup.picasso.Callback;
+import com.squareup.picasso.Picasso;
 
 import org.threeten.bp.LocalDate;
 import org.threeten.bp.Period;
 
 import java.util.Iterator;
 
-import static com.arbiter.droid.icebreakerprot1.Common.setStorageImageToImageView;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+
+import static com.arbiter.droid.icebreakerprot1.Common.databaseReference;
+import static com.arbiter.droid.icebreakerprot1.Common.getScreenWidth;
+
 
 public class ViewProfileActivity extends AppCompatActivity {
 
+    FragmentInterface fragmentInterface;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,6 +65,9 @@ public class ViewProfileActivity extends AppCompatActivity {
                 genTextView.setText(dataSnapshot.child("gender").getValue().toString());
                 interTextView.setText(dataSnapshot.child("interested").getValue().toString());
                 ageTextView.setText(age+"");
+                Bundle b = new Bundle();
+                b.putString("target_user",getTitle().toString());
+                fragmentInterface.onFragmentInteract(b);
             }
 
             @Override
@@ -116,14 +125,67 @@ public class ViewProfileActivity extends AppCompatActivity {
             }
         });
         final ImageView imageView2 = findViewById(R.id.picture);
+        imageView2.getLayoutParams().height= (int) (getScreenWidth()/2.4F);
+
+        imageView2.getLayoutParams().width= (int) (getScreenWidth()/2.4F);
+        imageView2.requestLayout();
+        Shimmer shimmer = new Shimmer.AlphaHighlightBuilder().build();
+        final ShimmerDrawable shimmerDrawable = new ShimmerDrawable();
+        shimmerDrawable.setShimmer(shimmer);
         try {
-            StorageReference storageReference = FirebaseStorage.getInstance().getReference().child("prof_img").child(name);
-            setStorageImageToImageView(storageReference, imageView2);
+            databaseReference.child("users").child(name).child("prof_img_url").addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    String url;
+                    if(dataSnapshot.exists()) {
+                        url = dataSnapshot.getValue().toString();
+                        Picasso.get().load(url).placeholder(shimmerDrawable).into(imageView2, new Callback() {
+                            @Override
+                            public void onSuccess() {
+                                //(findViewById(R.id.prof_image_placeholder)).setVisibility(View.INVISIBLE);
+                                (findViewById(R.id.interestedTextView)).setVisibility(View.VISIBLE);
+                                (findViewById(R.id.textView4)).setVisibility(View.VISIBLE);
+                                (findViewById(R.id.genderTextView)).setVisibility(View.VISIBLE);
+                                (findViewById(R.id.ageText)).setVisibility(View.VISIBLE);
+                            }
+
+                            @Override
+                            public void onError(Exception e) {
+
+                            }
+                        });
+                    }
+                    else
+                    {
+                        imageView2.setImageDrawable(getResources().getDrawable(R.drawable.ic_launcher_background));
+                        //(findViewById(R.id.prof_image_placeholder)).setVisibility(View.INVISIBLE);
+                        (findViewById(R.id.interestedTextView)).setVisibility(View.VISIBLE);
+                        (findViewById(R.id.textView4)).setVisibility(View.VISIBLE);
+                        (findViewById(R.id.genderTextView)).setVisibility(View.VISIBLE);
+                        (findViewById(R.id.ageText)).setVisibility(View.VISIBLE);
+                    }
+
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
+
         }
         catch(Exception e)
         {
             e.printStackTrace();
         }
 
+    }
+    public interface FragmentInterface
+    {
+        void onFragmentInteract(Bundle bundle);
+    }
+    public void setOnFragmentInteract(ViewProfileActivity.FragmentInterface fragmentInterface)
+    {
+        this.fragmentInterface = fragmentInterface;
     }
 }

@@ -8,14 +8,6 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.NavigationView;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -25,6 +17,8 @@ import android.widget.Toast;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.navigation.NavigationView;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -36,6 +30,15 @@ import java.net.URL;
 import java.util.List;
 import java.util.Locale;
 
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+
+import static com.arbiter.droid.icebreakerprot1.Common.current_user;
+
 public class IndexActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
     FusedLocationProviderClient mFusedLocationClient;
@@ -46,6 +49,7 @@ public class IndexActivity extends AppCompatActivity
         setContentView(R.layout.activity_index);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        current_user=getSharedPreferences("Icebreak",0).getString("saved_name","");
         FloatingActionButton fab = findViewById(R.id.floatingActionButton);
         FloatingActionButton fab2 = findViewById(R.id.floatingActionButton3);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -195,7 +199,7 @@ public class IndexActivity extends AppCompatActivity
         }
         else if(id == R.id.menuPictures)
         {
-
+            startActivity(new Intent(this,ImageListActivity.class));
         }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
