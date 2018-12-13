@@ -7,6 +7,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -41,7 +42,13 @@
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".ChatActivity"
-            android:label="Chat" />
+            android:label="Chat">
+            <intent-filter>
+                <action android:name="CHAT_MSG_OPEN" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".UsersViewActivity"
             android:label="Users in Location" />
@@ -56,8 +63,43 @@
             android:name="com.yalantis.ucrop.UCropActivity"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
-        <activity android:name=".ImageListActivity"
-            android:label="Your Images"></activity>
+        <activity
+            android:name=".ImageListActivity"
+            android:label="Your Images" />
+
+        <service android:name=".IcebreakerMessagingService">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <meta-data
+            android:name="com.facebook.sdk.ApplicationId"
+            android:value="@string/facebook_app_id" />
+
+        <activity
+            android:name="com.facebook.FacebookActivity"
+            android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
+            android:label="@string/app_name" />
+        <activity
+            android:name="com.facebook.CustomTabActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="@string/fb_login_protocol_scheme" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".FacebookAlbumListActivity"
+            android:label="Facebook Albums" />
+        <activity
+            android:name=".FacebookImageListActivity"
+            android:label="Album Images" />
+        <activity android:name=".UsersViewRecyclerActivity"></activity>
     </application>
 
 </manifest>

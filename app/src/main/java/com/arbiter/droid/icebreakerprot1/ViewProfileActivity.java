@@ -10,6 +10,7 @@ import android.widget.Toast;
 
 import com.facebook.shimmer.Shimmer;
 import com.facebook.shimmer.ShimmerDrawable;
+import com.facebook.shimmer.ShimmerFrameLayout;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -36,17 +37,18 @@ import static com.arbiter.droid.icebreakerprot1.Common.getScreenWidth;
 public class ViewProfileActivity extends AppCompatActivity {
 
     FragmentInterface fragmentInterface;
+    ShimmerFrameLayout shimmerFrameLayout;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         AndroidThreeTen.init(this);
         setContentView(R.layout.activity_view_profile);
         final String name;
+        shimmerFrameLayout = findViewById(R.id.shimmerFrameLayout);
         final SharedPreferences sharedPrefs = this.getSharedPreferences("Icebreak",0);
-        this.setTitle(name=getIntent().getStringExtra("name"));
+        this.setTitle(name=getIntent().getExtras().getString("name"));
         DatabaseReference fd = FirebaseDatabase.getInstance().getReference().child("users").child(name);
         final DatabaseReference fd2 = FirebaseDatabase.getInstance().getReference().child("pings");
-        Toast.makeText(this, name, Toast.LENGTH_SHORT).show();
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         final TextView bioTextView = findViewById(R.id.textView4);
         final TextView genTextView = findViewById(R.id.genderTextView);
@@ -62,9 +64,9 @@ public class ViewProfileActivity extends AppCompatActivity {
                     dob[i]=Integer.parseInt(tmp[i]);
                 int age = Period.between(LocalDate.of(dob[2],dob[1],dob[0]),LocalDate.now()).getYears();
                 bioTextView.setText(dataSnapshot.child("bio").getValue().toString());
-                genTextView.setText(dataSnapshot.child("gender").getValue().toString());
-                interTextView.setText(dataSnapshot.child("interested").getValue().toString());
-                ageTextView.setText(age+"");
+                genTextView.setText("Gender: "+dataSnapshot.child("gender").getValue().toString());
+                interTextView.setText("Interested In: "+dataSnapshot.child("interested").getValue().toString());
+                ageTextView.setText("Age:"+age);
                 Bundle b = new Bundle();
                 b.putString("target_user",getTitle().toString());
                 fragmentInterface.onFragmentInteract(b);
@@ -147,6 +149,8 @@ public class ViewProfileActivity extends AppCompatActivity {
                                 (findViewById(R.id.textView4)).setVisibility(View.VISIBLE);
                                 (findViewById(R.id.genderTextView)).setVisibility(View.VISIBLE);
                                 (findViewById(R.id.ageText)).setVisibility(View.VISIBLE);
+                                shimmerFrameLayout.stopShimmer();
+                                shimmerFrameLayout.setVisibility(View.GONE);
                             }
 
                             @Override
@@ -163,6 +167,8 @@ public class ViewProfileActivity extends AppCompatActivity {
                         (findViewById(R.id.textView4)).setVisibility(View.VISIBLE);
                         (findViewById(R.id.genderTextView)).setVisibility(View.VISIBLE);
                         (findViewById(R.id.ageText)).setVisibility(View.VISIBLE);
+                        shimmerFrameLayout.stopShimmer();
+                        shimmerFrameLayout.setVisibility(View.GONE);
                     }
 
                 }

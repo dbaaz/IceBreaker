@@ -19,4 +19,12 @@
         android:id="@+id/menuPictures"
         android:icon="@drawable/ic_menu_camera"
         android:title="Pictures" />
+    <item
+        android:id="@+id/fb_placeholder"
+        android:icon="@drawable/com_facebook_button_login_logo"
+        android:title="Facebook Photos" />
+    <item
+        android:id="@+id/logout_btn"
+        android:icon="@android:drawable/ic_lock_power_off"
+        android:title="Logout" />
 </menu>

@@ -24,7 +24,8 @@ public class PubViewActivity extends AppCompatActivity {
         users.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(v.getContext(),UsersViewActivity.class);
+                //Intent i = new Intent(v.getContext(),UsersViewActivity.class);
+                Intent i = new Intent(v.getContext(),UsersViewRecyclerActivity.class);
                 i.putExtra("mode",0);
                 startActivity(i);
             }

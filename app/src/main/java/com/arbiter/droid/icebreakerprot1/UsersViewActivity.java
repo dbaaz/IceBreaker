@@ -30,7 +30,7 @@ public class UsersViewActivity extends AppCompatActivity {
         final ListView lv = findViewById(R.id.listViewmine);
         final DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
         final ArrayList<String> userArray = new ArrayList<>();
-        final ArrayAdapter adap = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1,userArray);
+        final ArrayAdapter adap = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1,userArray);
         final SharedPreferences sharedPreferences = this.getSharedPreferences("Icebreak",0);
         final int mode = getIntent().getIntExtra("mode",-1);
         if(mode==0){
@@ -77,6 +77,7 @@ public class UsersViewActivity extends AppCompatActivity {
             databaseReference.addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    userArray.clear();
                     Iterable<DataSnapshot> children = dataSnapshot.getChildren();
                     Iterator<DataSnapshot> iterator = children.iterator();
                     while (iterator.hasNext())
@@ -133,7 +134,7 @@ public class UsersViewActivity extends AppCompatActivity {
         }
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
                 //Toast.makeText(UsersViewActivity.this, ((TextView)view).getText(), Toast.LENGTH_SHORT).show();
                 if(mode==0) {
                     Intent i = new Intent(view.getContext(), ViewProfileActivity.class);
@@ -151,7 +152,7 @@ public class UsersViewActivity extends AppCompatActivity {
                 else if(mode==2)
                 {
                     final DatabaseReference childr = mDatabase.child("pings");
-                    childr.addValueEventListener(new ValueEventListener() {
+                    childr.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                             Iterable<DataSnapshot> children = dataSnapshot.getChildren();
@@ -165,13 +166,14 @@ public class UsersViewActivity extends AppCompatActivity {
                                 {
                                     String s = next.getKey().toString();
                                     childr.child(s).child("accepted").setValue("yes");
-                                    name = next.child("from").getValue().toString();
-
                                 }
-                                adap.notifyDataSetChanged();
                             }
                             Intent i = new Intent(getApplicationContext(), ViewProfileActivity.class);
+                            name = ((TextView) view).getText().toString();
+                            adap.clear();
+                            adap.notifyDataSetChanged();
                             i.putExtra("name",name);
+                            i.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
                             startActivity(i);
 
                         }

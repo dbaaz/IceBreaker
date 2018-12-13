@@ -7,7 +7,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.Toast;
 
+import com.facebook.AccessToken;
+import com.facebook.GraphRequest;
+import com.facebook.GraphResponse;
+import com.facebook.HttpMethod;
 import com.facebook.shimmer.Shimmer;
 import com.facebook.shimmer.ShimmerDrawable;
 import com.facebook.shimmer.ShimmerFrameLayout;
@@ -17,14 +22,19 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import androidx.fragment.app.Fragment;
 
 import static com.arbiter.droid.icebreakerprot1.Common.compressImage;
 import static com.arbiter.droid.icebreakerprot1.Common.databaseReference;
 import static com.arbiter.droid.icebreakerprot1.Common.getScreenHeight;
+import static com.arbiter.droid.icebreakerprot1.Common.uploadImageUrl;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -66,6 +76,64 @@ public class ImageListFragment extends Fragment {
         //fragment.setArguments(args);
         return fragment;
     }
+    void populateListFromFacebookAlbum(String album_id)
+    {
+        final FlexboxLayout.LayoutParams lp = new FlexboxLayout.LayoutParams(FlexboxLayout.LayoutParams.MATCH_PARENT, FlexboxLayout.LayoutParams.MATCH_PARENT);
+        final ArrayList<String> image_url_list = new ArrayList<>();
+        GraphRequest gr = new GraphRequest(
+                AccessToken.getCurrentAccessToken(),
+                "/"+album_id+"/photos",
+                null,
+                HttpMethod.GET,
+                new GraphRequest.Callback() {
+                    @Override
+                    public void onCompleted(GraphResponse response)
+                    {
+                        try
+                        {
+                            //Log.v("myapp",response.getJSONObject().getJSONArray("data").getJSONObject(0).getString("source"));
+                            JSONObject jsonObject = response.getJSONObject();
+                            JSONArray data = jsonObject.getJSONArray("data");
+                            for(int i=0;i<data.length();i++)
+                            {
+                                image_url_list.add(data.getJSONObject(i).getString("source"));
+                                ImageView tmp = new ImageView(getContext());
+                                tmp.setTag(i);
+                                lp.setHeight(getScreenHeight()/2);
+                                tmp.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                                tmp.setLayoutParams(lp);
+                                Shimmer shimmer = new Shimmer.ColorHighlightBuilder().build();
+                                ShimmerDrawable tempShimmer = new ShimmerDrawable();
+                                tempShimmer.setShimmer(shimmer);
+                                Picasso.get().load(data.getJSONObject(i).getString("source")).placeholder(tempShimmer).transform(new CircleTransform()).into(tmp);
+                                flexboxLayout.addView(tmp);
+                                tmp.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        Toast.makeText(v.getContext(), "Long press image to upload", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                                tmp.setOnLongClickListener(new View.OnLongClickListener() {
+                                    @Override
+                                    public boolean onLongClick(View v) {
+                                        ImageView temp = (ImageView)v;
+                                        uploadImageUrl(image_url_list.get(Integer.parseInt(temp.getTag().toString())),getContext());
+                                        return true;
+                                    }
+                                });
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+        Bundle b = new Bundle();
+        b.putString("fields","source");
+        gr.setParameters(b);
+        gr.executeAsync();
+    }
     void populateList(String target_user)
     {
         final FlexboxLayout.LayoutParams lp = new FlexboxLayout.LayoutParams(FlexboxLayout.LayoutParams.MATCH_PARENT, FlexboxLayout.LayoutParams.MATCH_PARENT);
@@ -84,7 +152,7 @@ public class ImageListFragment extends Fragment {
                     Shimmer shimmer = new Shimmer.ColorHighlightBuilder().build();
                     ShimmerDrawable tempShimmer = new ShimmerDrawable();
                     tempShimmer.setShimmer(shimmer);
-                    Picasso.get().load(url).placeholder(tempShimmer).into(tmp);
+                    Picasso.get().load(url).placeholder(tempShimmer).transform(new CircleTransform()).into(tmp);
                     flexboxLayout.addView(tmp);
                 }
             }
@@ -148,7 +216,16 @@ public class ImageListFragment extends Fragment {
                 }
             });
         }
-
+        else if(getActivity() instanceof FacebookImageListActivity)
+        {
+            ((FacebookImageListActivity)getActivity()).setOnFragmentInteract(new FacebookImageListActivity.FragmentInterface() {
+                @Override
+                public void onFragmentInteract(Bundle bundle) {
+                    if(bundle.containsKey("album_id"))
+                        populateListFromFacebookAlbum(bundle.getString("album_id"));
+                }
+            });
+        }
         return rootview;
     }
 

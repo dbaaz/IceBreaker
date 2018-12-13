@@ -7,17 +7,27 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.Toast;
 
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.facebook.AccessToken;
+import com.facebook.GraphRequest;
+import com.facebook.GraphResponse;
+import com.facebook.shimmer.Shimmer;
+import com.facebook.shimmer.ShimmerDrawable;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.FacebookAuthProvider;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserInfo;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -27,6 +37,9 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.squareup.picasso.Picasso;
 import com.yalantis.ucrop.UCrop;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -62,43 +75,47 @@ public class CreateProfileActivity extends AppCompatActivity {
         FirebaseApp.initializeApp(this);
         til = findViewById(R.id.dobinput);
         final TextInputLayout nameedit = findViewById(R.id.textInputLayout);
-        Button btn = findViewById(R.id.button);
+        final Button btn = findViewById(R.id.button);
         i = new Intent(this, ExtendedCreateProfileActivity.class);
         if(getIntent().hasExtra("editmode"))
         {
-            StorageReference storageReference = FirebaseStorage.getInstance().getReference().child("/prof_img/" + sharedPref.getString("saved_name", ""));
-            //Picasso.get().load(prof_img).into(imgview);
-            //setStorageImageToImageView(storageReference,imgview);
+            setTitle("Edit Profile");
+            btn.setText("Save");
             DatabaseReference firebaseDatabase = FirebaseDatabase.getInstance().getReference();
-            firebaseDatabase.child("users").child(sharedPref.getString("saved_user","")).addListenerForSingleValueEvent(new ValueEventListener() {
+            firebaseDatabase.child("users").child(sharedPref.getString("saved_name","")).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    nametxt.setText(dataSnapshot.getKey().toString());
+                    Shimmer shimmer = new Shimmer.ColorHighlightBuilder().build();
+                    ShimmerDrawable shimmerDrawable = new ShimmerDrawable();
+                    shimmerDrawable.setShimmer(shimmer);
+                    Picasso.get().load(dataSnapshot.child("prof_img_url").getValue().toString()).placeholder(shimmerDrawable).into(imgview);
+                    nametxt.setText(dataSnapshot.getKey());
+                    Log.v("myapp",dataSnapshot.getKey());
                     String genderResult = dataSnapshot.child("gender").getValue().toString();
                     dobinput.setText(dataSnapshot.child("dob").getValue().toString());
                     String interestedResult = dataSnapshot.child("interested").getValue().toString();
                     switch(genderResult)
                     {
                         case "Male":
-                            gender.setSelection(0);
-                            break;
-                        case "Female":
                             gender.setSelection(1);
                             break;
-                        case "Other":
+                        case "Female":
                             gender.setSelection(2);
+                            break;
+                        case "Other":
+                            gender.setSelection(3);
                             break;
                     }
                     switch(interestedResult)
                     {
                         case "Male":
-                            gender.setSelection(0);
+                            interested.setSelection(1);
                             break;
                         case "Female":
-                            gender.setSelection(1);
+                            interested.setSelection(2);
                             break;
                         case "Other":
-                            gender.setSelection(2);
+                            interested.setSelection(3);
                             break;
                     }
                 }
@@ -110,12 +127,60 @@ public class CreateProfileActivity extends AppCompatActivity {
             });
         }
         else {
-            final GoogleSignInAccount acc = getIntent().getBundleExtra("accdetailbundle").getParcelable("accdet");
-
+            //final FirebaseUser acc = getIntent().getBundleExtra("accdetailbundle").getParcelable("accdet");
+            FirebaseUser acc = FirebaseAuth.getInstance().getCurrentUser();
             try {
-                Picasso.get().load(acc.getPhotoUrl().toString()).into(imgview);
+                Shimmer shimmer = new Shimmer.ColorHighlightBuilder().build();
+                ShimmerDrawable shimmerDrawable = new ShimmerDrawable();
+                shimmerDrawable.setShimmer(shimmer);
+                String profileUri;
+                String uid = null;
+                String providerId=null;
+                for (UserInfo userInfo : acc.getProviderData())
+                {
+                    uid = userInfo.getUid();
+                    providerId = userInfo.getProviderId();
+                }
+                if (FacebookAuthProvider.PROVIDER_ID.equals(providerId))
+                {
+                    profileUri = "https://graph.facebook.com/" + uid + "/picture?height=500";
+                    GraphRequest request = GraphRequest.newMeRequest(
+                            AccessToken.getCurrentAccessToken(),
+                            new GraphRequest.GraphJSONObjectCallback() {
+                                @Override
+                                public void onCompleted(JSONObject object, GraphResponse response) {
+                                    try {
+                                        String birthday = object.getString("birthday");
+                                        String genderval = object.getString("gender");
+                                        String[] birth_array = birthday.split("/");
+                                        birthday=birth_array[1]+"/"+birth_array[0]+"/"+birth_array[2];
+                                        dobinput.setText(birthday);
+                                        switch (genderval)
+                                        {
+                                            case "male":
+                                                gender.setSelection(1);
+                                                break;
+                                            case "female":
+                                                gender.setSelection(2);
+                                                break;
+                                        }
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            });
+                    Bundle parameters = new Bundle();
+                    parameters.putString("fields", "id,name,email,gender,birthday");
+                    request.setParameters(parameters);
+                    request.executeAsync();
+
+                }
+                else
+                    profileUri = acc.getPhotoUrl().toString();
+                Picasso.get().load(profileUri).placeholder(shimmerDrawable).into(imgview);
 
             } catch (Exception e) {
+                e.printStackTrace();
             }
             nameedit.getEditText().setText(acc.getDisplayName().toString());
         }
@@ -147,25 +212,29 @@ public class CreateProfileActivity extends AppCompatActivity {
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                mDatabase.child("users").child(nametxt.getText().toString()).child("gender").setValue(gender.getSelectedItem().toString());
-                mDatabase.child("users").child(nametxt.getText().toString()).child("name").setValue(nametxt.getText().toString());
-                mDatabase.child("users").child(nametxt.getText().toString()).child("dob").setValue(dobinput.getText().toString());
-                mDatabase.child("users").child(nametxt.getText().toString()).child("interested").setValue(interested.getSelectedItem().toString());
-                try {
-                    Bitmap bitmap=((BitmapDrawable)imgview.getDrawable()).getBitmap();
-                    //uploadAvatarImage("/prof_img/" + nametxt.getText().toString(), imageViewtoByteArray(imgview));
-                    File tmp = new File(getCacheDir()+"temp.jpeg");
-                    FileOutputStream ostream = new FileOutputStream(tmp);
-                    bitmap.compress(Bitmap.CompressFormat.JPEG,100,ostream);
-                    ostream.close();
-                    current_user=nametxt.getText().toString();
-                    uploadAvatarImage("/prof_img/"+nametxt.getText().toString(),compressImage(tmp,getApplicationContext(),true));
-                }catch(Exception e){}
-                setUser(nametxt.getText().toString(), gender.getSelectedItem().toString(), dobinput.getText().toString(), interested.getSelectedItem().toString());
-                startActivity(i);
-                finish();
-
+            if(!nametxt.getText().toString().trim().equals("")&&!dobinput.getText().toString().trim().equals("")&&gender.getSelectedItemPosition()!=0&&interested.getSelectedItemPosition()!=0)
+            {
+                    mDatabase.child("users").child(nametxt.getText().toString()).child("gender").setValue(gender.getSelectedItem().toString());
+                    mDatabase.child("users").child(nametxt.getText().toString()).child("name").setValue(nametxt.getText().toString());
+                    mDatabase.child("users").child(nametxt.getText().toString()).child("dob").setValue(dobinput.getText().toString());
+                    mDatabase.child("users").child(nametxt.getText().toString()).child("interested").setValue(interested.getSelectedItem().toString());
+                    try {
+                        Bitmap bitmap = ((BitmapDrawable) imgview.getDrawable()).getBitmap();
+                        //uploadAvatarImage("/prof_img/" + nametxt.getText().toString(), imageViewtoByteArray(imgview));
+                        File tmp = new File(getCacheDir() + "temp.jpeg");
+                        FileOutputStream ostream = new FileOutputStream(tmp);
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, ostream);
+                        ostream.close();
+                        current_user = nametxt.getText().toString();
+                        uploadAvatarImage("/prof_img/" + nametxt.getText().toString(), compressImage(tmp, getApplicationContext(), true));
+                    } catch (Exception e) {
+                    }
+                    setUser(nametxt.getText().toString(), gender.getSelectedItem().toString(), dobinput.getText().toString(), interested.getSelectedItem().toString());
+                    startActivity(i);
+                    finish();
+            }
+            else
+                Toast.makeText(CreateProfileActivity.this, "All fields are required", Toast.LENGTH_SHORT).show();
             }
         });
         imgview.setOnClickListener(new View.OnClickListener() {

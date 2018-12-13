@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "343799886388-u3h5n4fd23lj80cjs9b9mlljgvb8mvj0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.arbiter.droid.icebreakerprot1",
+            "certificate_hash": "eab596418f115cae731395ca5ff277a6c5681aca"
+          }
+        },
+        {
           "client_id": "343799886388-jc23a4teeem0i40jrhavhl6og0j0fktb.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -29,8 +37,13 @@
           "status": 1
         },
         "appinvite_service": {
-          "status": 1,
-          "other_platform_oauth_client": []
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "343799886388-jc23a4teeem0i40jrhavhl6og0j0fktb.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         },
         "ads_service": {
           "status": 2

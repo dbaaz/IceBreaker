@@ -1,12 +1,16 @@
 package com.arbiter.droid.icebreakerprot1;
 
 import android.Manifest;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -14,11 +18,17 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import com.facebook.AccessToken;
+import com.facebook.login.LoginManager;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -30,6 +40,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.Locale;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -38,24 +49,53 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import static com.arbiter.droid.icebreakerprot1.Common.current_user;
+import static com.arbiter.droid.icebreakerprot1.Common.databaseReference;
 
 public class IndexActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
     FusedLocationProviderClient mFusedLocationClient;
-
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = "Icebreak";
+            String description = "Icebreaker notification channel";
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel("1", name, importance);
+            channel.setDescription(description);
+            // Register the channel with the system; you can't change the importance
+            // or other notification behaviors after this
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_index);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        current_user=getSharedPreferences("Icebreak",0).getString("saved_name","");
+        createNotificationChannel();
+        current_user = getSharedPreferences("Icebreak", 0).getString("saved_name", "");
+        if (getSharedPreferences("Icebreak", 0).getString("firebaseinstanceid", "").equals("")) {
+            FirebaseInstanceId.getInstance().getInstanceId().addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+                @Override
+                public void onComplete(@NonNull Task<InstanceIdResult> task) {
+                    if (!task.isSuccessful())
+                        return;
+                    databaseReference.child("users").child(current_user).child("firebaseinstanceid").setValue(task.getResult().getToken());
+                }
+            });
+        }
+        else
+        {
+            databaseReference.child("users").child(current_user).child("firebaseinstanceid").setValue(getSharedPreferences("Icebreak",0).getString("firebaseinstanceid",""));
+        }
         FloatingActionButton fab = findViewById(R.id.floatingActionButton);
         FloatingActionButton fab2 = findViewById(R.id.floatingActionButton3);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(v.getContext(),UsersViewActivity.class);
+                //Intent i = new Intent(v.getContext(),UsersViewActivity.class);
+                Intent i = new Intent(v.getContext(),UsersViewRecyclerActivity.class);
                 i.putExtra("mode",1);
                 startActivity(i);
             }
@@ -200,6 +240,28 @@ public class IndexActivity extends AppCompatActivity
         else if(id == R.id.menuPictures)
         {
             startActivity(new Intent(this,ImageListActivity.class));
+        }
+        else if(id == R.id.fb_placeholder)
+        {
+            try {
+                AccessToken.getCurrentAccessToken().toString();
+                startActivity(new Intent(this, FacebookAlbumListActivity.class));
+            }
+            catch (Exception e)
+            {
+                Toast.makeText(this, "You need to be logged into Facebook", Toast.LENGTH_SHORT).show();
+            }
+        }
+        else if(id == R.id.logout_btn)
+        {
+            try {
+                LoginManager.getInstance().logOut();
+            }catch (Exception e){}
+            SharedPreferences.Editor editor = getSharedPreferences("Icebreak", 0).edit();
+            editor.remove("saved_name");
+            editor.commit();
+            finish();
+            startActivity(new Intent(this,LoginActivity.class));
         }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);

@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.MultiAutoCompleteTextView;
+import android.widget.Toast;
 
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -28,9 +29,13 @@ public class ExtendedCreateProfileActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 biotext[0] = mactv.getText().toString();
-                mDatabase.child("users").child(sharedPref.getString("saved_name", "")).child("bio").setValue(biotext[0]);
-                startActivity(new Intent(v.getContext(), IndexActivity.class));
-                finish();
+                if(!biotext[0].trim().equals("")) {
+                    mDatabase.child("users").child(sharedPref.getString("saved_name", "")).child("bio").setValue(biotext[0]);
+                    startActivity(new Intent(v.getContext(), IndexActivity.class));
+                    finish();
+                }
+                else
+                    Toast.makeText(ExtendedCreateProfileActivity.this, "Bio is mandatory", Toast.LENGTH_SHORT).show();
             }
         });
     }

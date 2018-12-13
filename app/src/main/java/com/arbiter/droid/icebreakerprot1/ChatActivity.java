@@ -1,9 +1,7 @@
 package com.arbiter.droid.icebreakerprot1;
 
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
+import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -33,8 +31,6 @@ import java.util.concurrent.TimeUnit;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
 
 import static com.arbiter.droid.icebreakerprot1.Common.databaseReference;
 import static com.arbiter.droid.icebreakerprot1.Common.getDate;
@@ -49,21 +45,6 @@ public class ChatActivity extends AppCompatActivity {
     {
         this.isGroup="no";
     }
-    private void createNotificationChannel() {
-        // Create the NotificationChannel, but only on API 26+ because
-        // the NotificationChannel class is new and not in the support library
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CharSequence name = "lol";
-            String description = "lol";
-            int importance = NotificationManager.IMPORTANCE_DEFAULT;
-            NotificationChannel channel = new NotificationChannel("lol", name, importance);
-            channel.setDescription(description);
-            // Register the channel with the system; you can't change the importance
-            // or other notification behaviors after this
-            NotificationManager notificationManager = getSystemService(NotificationManager.class);
-            notificationManager.createNotificationChannel(channel);
-        }
-    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -75,14 +56,11 @@ public class ChatActivity extends AppCompatActivity {
         isGroup=getIntent().getStringExtra("groupChat");
         MessageInput inputView = findViewById(R.id.inputView);
         //Button post = findViewById(R.id.button4);
-        createNotificationChannel();
         final DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
         SharedPreferences sharedPref = this.getSharedPreferences("Icebreak",0);
         //final EditText postmsg = findViewById(R.id.editText);
         //final EditText chatlog = findViewById(R.id.editText2);
         final String name = sharedPref.getString("saved_name","");
-        final NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(getApplicationContext(),"lol").setSmallIcon(R.drawable.ic_menu_send).setContentTitle("Icebreaker").setContentText("You may have new messages").setPriority(NotificationCompat.PRIORITY_DEFAULT);
-        final NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
         if(isGroup.equals("yes")) {
             ImageLoader imageLoader = new ImageLoader() {
                 @Override
@@ -123,17 +101,6 @@ public class ChatActivity extends AppCompatActivity {
                 }
             });
 
-
-            /*post.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    DatabaseReference temp = mDatabase.child("pubs").child(sender).child("chat").push();
-                    temp.child("sender").setValue(name);
-                    temp.child("text").setValue(postmsg.getText().toString());
-                    temp.child("timestamp").setValue(String.valueOf(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())));
-                    postmsg.setText("");
-                }
-            });*/
             inputView.setInputListener(new MessageInput.InputListener() {
                 @Override
                 public boolean onSubmit(CharSequence input) {
@@ -254,7 +221,6 @@ public class ChatActivity extends AppCompatActivity {
                  Iterable<DataSnapshot> children = dataSnapshot.getChildren();
                  Iterator<DataSnapshot> iterator = children.iterator();
                  ArrayList<ArrayList<Object>> chatList = new ArrayList<>();
-                 Log.v("myapp","lul");
                  while (iterator.hasNext())
                  {
                      DataSnapshot tmp = iterator.next();
@@ -295,6 +261,15 @@ public class ChatActivity extends AppCompatActivity {
              }
          });
      }
+    @Override
+    public void onBackPressed() {
+        if (isTaskRoot()) {
+            finish();
+            startActivity(new Intent(this, IndexActivity.class));
+        } else {
+            super.onBackPressed();
+        }
+    }
 }
 class Message implements IMessage
 {
