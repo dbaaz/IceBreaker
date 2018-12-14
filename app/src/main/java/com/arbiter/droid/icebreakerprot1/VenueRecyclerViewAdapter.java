@@ -18,17 +18,17 @@ import androidx.recyclerview.widget.RecyclerView;
 public class VenueRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private Context mContext;
-    private ArrayList<AbstractModel2> modelList;
+    private ArrayList<VenueDataModel> modelList;
 
     private OnItemClickListener mItemClickListener;
 
 
-    public VenueRecyclerViewAdapter(Context context, ArrayList<AbstractModel2> modelList) {
+    public VenueRecyclerViewAdapter(Context context, ArrayList<VenueDataModel> modelList) {
         this.mContext = context;
         this.modelList = modelList;
     }
 
-    public void updateList(ArrayList<AbstractModel2> modelList) {
+    public void updateList(ArrayList<VenueDataModel> modelList) {
         this.modelList = modelList;
         notifyDataSetChanged();
 
@@ -47,7 +47,7 @@ public class VenueRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.
 
         //Here you can fill your row view
         if (holder instanceof ViewHolder) {
-            final AbstractModel2 model = getItem(position);
+            final VenueDataModel model = getItem(position);
             ViewHolder genericViewHolder = (ViewHolder) holder;
 
             genericViewHolder.itemTxtTitle.setText(model.getTitle());
@@ -68,13 +68,13 @@ public class VenueRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.
         this.mItemClickListener = mItemClickListener;
     }
 
-    private AbstractModel2 getItem(int position) {
+    private VenueDataModel getItem(int position) {
         return modelList.get(position);
     }
 
 
     public interface OnItemClickListener {
-        void onItemClick(View view, int position, AbstractModel2 model);
+        void onItemClick(View view, int position, VenueDataModel model);
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {

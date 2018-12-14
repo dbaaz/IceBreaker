@@ -15,6 +15,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import org.greenrobot.eventbus.EventBus;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -59,7 +61,7 @@ public class VenueRecyclerViewFragment extends Fragment {
     private SwipeRefreshLayout swipeRefreshRecyclerList;
     private VenueRecyclerViewAdapter mAdapter;
 
-    private final ArrayList<AbstractModel2> modelList = new ArrayList<>();
+    private final ArrayList<VenueDataModel> modelList = new ArrayList<>();
 
 
     public VenueRecyclerViewFragment() {
@@ -174,9 +176,6 @@ public class VenueRecyclerViewFragment extends Fragment {
     }
 
     private void setAdapter() {
-
-
-        //modelList.add(new AbstractModel2("Example Pub", "No alcohol"));
         DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference().child("pubs");
         mDatabase.addValueEventListener(new ValueEventListener() {
             @Override
@@ -188,9 +187,10 @@ public class VenueRecyclerViewFragment extends Fragment {
                 {
                     DataSnapshot next = iterator.next();
                     String alcohol = next.child("alcohol").getValue().toString().equals("0") ? "No Alcohol" : "Alcohol Available";
-                    modelList.add(new AbstractModel2(next.child("name").getValue().toString(),alcohol));
+                    modelList.add(new VenueDataModel(next.child("name").getValue().toString(),alcohol));
                 }
                 mAdapter.notifyDataSetChanged();
+                EventBus.getDefault().post(new ShimmerDisableEvent());
             }
 
             @Override
@@ -213,7 +213,7 @@ public class VenueRecyclerViewFragment extends Fragment {
 
         mAdapter.SetOnItemClickListener(new VenueRecyclerViewAdapter.OnItemClickListener() {
             @Override
-            public void onItemClick(View view, int position, AbstractModel2 model) {
+            public void onItemClick(View view, int position, VenueDataModel model) {
 
                 //handle item click events here
                 //Toast.makeText(getActivity(), "Hey " + model.getTitle(), Toast.LENGTH_SHORT).show();

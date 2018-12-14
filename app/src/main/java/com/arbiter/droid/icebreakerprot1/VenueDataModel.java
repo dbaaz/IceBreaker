@@ -1,20 +1,18 @@
 package com.arbiter.droid.icebreakerprot1;
 
-import java.util.ArrayList;
-
-public class AbstractModel2 {
+public class VenueDataModel {
 
     private String title;
 
     private String message;
 
 
-    public AbstractModel2(String title, String message) {
+    public VenueDataModel(String title, String message) {
         this.title = title;
         this.message = message;
     }
 
-    public AbstractModel2() {
+    public VenueDataModel() {
 
     }
 
