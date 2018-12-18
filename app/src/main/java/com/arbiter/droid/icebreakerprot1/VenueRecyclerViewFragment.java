@@ -4,27 +4,28 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+
+import static com.arbiter.droid.icebreakerprot1.Common.getDatabaseReference;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -58,7 +59,7 @@ public class VenueRecyclerViewFragment extends Fragment {
     // @BindView(R.id.swipe_refresh_recycler_list)
     // SwipeRefreshLayout swipeRefreshRecyclerList;
 
-    private SwipeRefreshLayout swipeRefreshRecyclerList;
+    //private SwipeRefreshLayout swipeRefreshRecyclerList;
     private VenueRecyclerViewAdapter mAdapter;
 
     private final ArrayList<VenueDataModel> modelList = new ArrayList<>();
@@ -120,34 +121,14 @@ public class VenueRecyclerViewFragment extends Fragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-        setAdapter();
-
-        swipeRefreshRecyclerList.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-
-                // Do your stuff on refresh
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-
-                        if (swipeRefreshRecyclerList.isRefreshing())
-                            swipeRefreshRecyclerList.setRefreshing(false);
-                    }
-                }, 5000);
-
-            }
-        });
-
-
+        EventBus.getDefault().register(this);
+        setAdapter(null);
     }
-
 
     private void findViews(View view) {
 
         recyclerView = (RecyclerView) view.findViewById(R.id.recycler_view);
-        swipeRefreshRecyclerList = (SwipeRefreshLayout) view.findViewById(R.id.swipe_refresh_recycler_list);
+        //swipeRefreshRecyclerList = (SwipeRefreshLayout) view.findViewById(R.id.swipe_refresh_recycler_list);
     }
 
 
@@ -174,20 +155,45 @@ public class VenueRecyclerViewFragment extends Fragment {
         super.onDetach();
         mListener = null;
     }
-
-    private void setAdapter() {
-        DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference().child("pubs");
-        mDatabase.addValueEventListener(new ValueEventListener() {
+    @Subscribe
+    public void setAdapter(VenueCriteriaEvent event) {
+        final String searchQuery;
+        final HashMap<String, Boolean> criterias;
+        if(event != null) {
+            searchQuery = event.searchQuery;
+            criterias = event.criterias;
+            Log.v("myapp",criterias.toString());
+        }
+        else
+        {
+            searchQuery = "";
+            criterias = new HashMap<>();
+            criterias.put("alcohol",true);
+            criterias.put("food",true);
+            criterias.put("vegonly",false);
+            criterias.put("drinksonly",false);
+            criterias.put("dance",false);
+            criterias.put("hookah",false);
+            criterias.put("night",false);
+        }
+        getDatabaseReference().child("pubs").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 modelList.clear();
                 Iterable<DataSnapshot> children = dataSnapshot.getChildren();
                 Iterator<DataSnapshot> iterator = children.iterator();
+                String[] critNames = {"alcohol","food","vegonly","drinksonly","dance","hookah","night"};
                 while(iterator.hasNext())
                 {
                     DataSnapshot next = iterator.next();
-                    String alcohol = next.child("alcohol").getValue().toString().equals("0") ? "No Alcohol" : "Alcohol Available";
-                    modelList.add(new VenueDataModel(next.child("name").getValue().toString(),alcohol));
+                    HashMap<String,Boolean> fragCriterias = new HashMap<>();
+                    for(String criteria : critNames) {
+                        fragCriterias.put(criteria, Boolean.parseBoolean(next.child("tags").child(criteria).getValue().toString()));
+                        if(fragCriterias.get(criteria)&&criterias.get(criteria)&&next.child("name").getValue().toString().toLowerCase().contains(searchQuery.toLowerCase())) {
+                            modelList.add(new VenueDataModel(next.child("name").getValue().toString(), ""));
+                            break;
+                        }
+                    }
                 }
                 mAdapter.notifyDataSetChanged();
                 EventBus.getDefault().post(new ShimmerDisableEvent());

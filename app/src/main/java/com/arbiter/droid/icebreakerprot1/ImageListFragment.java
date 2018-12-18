@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import androidx.fragment.app.Fragment;
 
 import static com.arbiter.droid.icebreakerprot1.Common.compressImage;
-import static com.arbiter.droid.icebreakerprot1.Common.databaseReference;
+import static com.arbiter.droid.icebreakerprot1.Common.getDatabaseReference;
 import static com.arbiter.droid.icebreakerprot1.Common.getScreenHeight;
 import static com.arbiter.droid.icebreakerprot1.Common.uploadImageUrl;
 
@@ -128,7 +128,7 @@ public class ImageListFragment extends Fragment {
     void populateList(String target_user)
     {
         final FlexboxLayout.LayoutParams lp = new FlexboxLayout.LayoutParams(FlexboxLayout.LayoutParams.MATCH_PARENT, FlexboxLayout.LayoutParams.MATCH_PARENT);
-        databaseReference.child("users").child(target_user).child("image_url").addListenerForSingleValueEvent(new ValueEventListener() {
+        getDatabaseReference().child("users").child(target_user).child("image_url").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 flexboxLayout.removeAllViews();

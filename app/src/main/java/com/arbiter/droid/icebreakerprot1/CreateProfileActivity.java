@@ -2,12 +2,10 @@ package com.arbiter.droid.icebreakerprot1;
 
 import android.app.DatePickerDialog;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
@@ -52,21 +50,21 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import static com.arbiter.droid.icebreakerprot1.Common.compressImage;
-import static com.arbiter.droid.icebreakerprot1.Common.current_user;
+import static com.arbiter.droid.icebreakerprot1.Common.getPreference;
+import static com.arbiter.droid.icebreakerprot1.Common.setCurrentUser;
+import static com.arbiter.droid.icebreakerprot1.Common.setPreference;
 import static com.arbiter.droid.icebreakerprot1.Common.uploadAvatarImage;
 
 public class CreateProfileActivity extends AppCompatActivity {
     final Calendar myCalendar = Calendar.getInstance();
     Intent i;
     TextInputEditText til;
-    SharedPreferences sharedPref;
     String prof_img_uri;
     ImageView imgview;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_profile);
-        sharedPref = this.getSharedPreferences("Icebreak", 0);
         final EditText nametxt = findViewById(R.id.name_textedit);
         final Spinner gender = findViewById(R.id.spinner2);
         final EditText dobinput = findViewById(R.id.dobinput);
@@ -82,7 +80,7 @@ public class CreateProfileActivity extends AppCompatActivity {
             setTitle("Edit Profile");
             btn.setText("Save");
             DatabaseReference firebaseDatabase = FirebaseDatabase.getInstance().getReference();
-            firebaseDatabase.child("users").child(sharedPref.getString("saved_name","")).addListenerForSingleValueEvent(new ValueEventListener() {
+            firebaseDatabase.child("users").child(getPreference("saved_name")).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     Shimmer shimmer = new Shimmer.ColorHighlightBuilder().build();
@@ -90,7 +88,6 @@ public class CreateProfileActivity extends AppCompatActivity {
                     shimmerDrawable.setShimmer(shimmer);
                     Picasso.get().load(dataSnapshot.child("prof_img_url").getValue().toString()).placeholder(shimmerDrawable).into(imgview);
                     nametxt.setText(dataSnapshot.getKey());
-                    Log.v("myapp",dataSnapshot.getKey());
                     String genderResult = dataSnapshot.child("gender").getValue().toString();
                     dobinput.setText(dataSnapshot.child("dob").getValue().toString());
                     String interestedResult = dataSnapshot.child("interested").getValue().toString();
@@ -220,12 +217,12 @@ public class CreateProfileActivity extends AppCompatActivity {
                     mDatabase.child("users").child(nametxt.getText().toString()).child("interested").setValue(interested.getSelectedItem().toString());
                     try {
                         Bitmap bitmap = ((BitmapDrawable) imgview.getDrawable()).getBitmap();
-                        //uploadAvatarImage("/prof_img/" + nametxt.getText().toString(), imageViewtoByteArray(imgview));
                         File tmp = new File(getCacheDir() + "temp.jpeg");
                         FileOutputStream ostream = new FileOutputStream(tmp);
                         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, ostream);
                         ostream.close();
-                        current_user = nametxt.getText().toString();
+                        if(!nametxt.getText().toString().equals(""))
+                            setCurrentUser(nametxt.getText().toString());
                         uploadAvatarImage("/prof_img/" + nametxt.getText().toString(), compressImage(tmp, getApplicationContext(), true));
                     } catch (Exception e) {
                     }
@@ -270,9 +267,7 @@ public class CreateProfileActivity extends AppCompatActivity {
 
     void setUser(String name, String gender, String dob, String interest) {
 
-        SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putString("saved_name", name);
-        editor.commit();
+        setPreference("saved_name",name);
     }
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);

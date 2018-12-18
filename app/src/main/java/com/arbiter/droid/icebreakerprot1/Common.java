@@ -1,6 +1,7 @@
 package com.arbiter.droid.icebreakerprot1;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
@@ -31,12 +32,33 @@ import androidx.annotation.NonNull;
 import id.zelory.compressor.Compressor;
 
 public class Common {
-    static StorageReference storageReference = FirebaseStorage.getInstance().getReference();
-    static DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
-    static String current_user="";
+    private static StorageReference storageReference = FirebaseStorage.getInstance().getReference();
+    private static DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+    private static String current_user="";
+    private static SharedPreferences sharedPreferences;
     public static final String DATA = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZqwertyuiopasdfghjklzxcvbnm";
     public static Random RANDOM = new Random();
-
+    public static void setDefaultPreferences(SharedPreferences sharedPreferences) {
+        Common.sharedPreferences = sharedPreferences;
+    }
+    public static void setPreference(String preference,String value) {
+        SharedPreferences.Editor edit = sharedPreferences.edit();
+        edit.putString(preference,value);
+        edit.commit();
+        if(!sharedPreferences.getString(preference,"").equals(value)||sharedPreferences.getString(preference,"").equals(""))
+            setPreference(preference,value);
+    }
+    public static String getPreference(String preference){
+        return sharedPreferences.getString(preference,"");
+    }
+    public static String getCurrentUser()
+    {
+        return current_user;
+    }
+    public static void setCurrentUser(String current_user)
+    {
+        Common.current_user=current_user;
+    }
     public static String randomString(int len) {
         StringBuilder sb = new StringBuilder(len);
 
@@ -45,6 +67,10 @@ public class Common {
         }
 
         return sb.toString();
+    }
+    public static DatabaseReference getDatabaseReference()
+    {
+        return databaseReference;
     }
     static byte[] imageViewtoByteArray(ImageView iv1)
     {
@@ -62,7 +88,7 @@ public class Common {
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot)
             {
-                final DatabaseReference tmp = databaseReference.child("users").child(current_user).child("prof_img_url");
+                final DatabaseReference tmp = databaseReference.child("users").child(getCurrentUser()).child("prof_img_url");
                 storageReference.child(dbPath).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                     @Override
                     public void onSuccess(Uri uri) {
@@ -84,7 +110,7 @@ public class Common {
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot)
             {
-                final DatabaseReference tmp = databaseReference.child("users").child(current_user).child("image_url").push();
+                final DatabaseReference tmp = databaseReference.child("users").child(getCurrentUser()).child("image_url").push();
                 storageReference.child(dbPath).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                     @Override
                     public void onSuccess(Uri uri) {
@@ -102,7 +128,7 @@ public class Common {
     static void uploadImageUrl(final String url, final Context context)
     {
         final boolean[] flag = {true};
-        databaseReference.child("users").child(current_user).child("image_url").addListenerForSingleValueEvent(new ValueEventListener() {
+        databaseReference.child("users").child(getCurrentUser()).child("image_url").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Iterable<DataSnapshot> children = dataSnapshot.getChildren();
@@ -118,7 +144,7 @@ public class Common {
                 }
                 if(flag[0])
                 {
-                    final DatabaseReference tmp = databaseReference.child("users").child(current_user).child("image_url").push();
+                    final DatabaseReference tmp = databaseReference.child("users").child(getCurrentUser()).child("image_url").push();
                     tmp.child("url").setValue(url);
                     Toast.makeText(context, "Import Successful", Toast.LENGTH_SHORT).show();
                 }
@@ -137,7 +163,7 @@ public class Common {
             @Override
             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot)
             {
-                final DatabaseReference tmp = databaseReference.child("users").child(current_user).child("image_url").push();
+                final DatabaseReference tmp = databaseReference.child("users").child(getCurrentUser()).child("image_url").push();
                 storageReference.child(dbPath).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                     @Override
                     public void onSuccess(Uri uri) {

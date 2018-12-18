@@ -35,6 +35,8 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import static com.arbiter.droid.icebreakerprot1.Common.setDefaultPreferences;
+
 public class LoginActivity extends Activity implements View.OnClickListener {
     GoogleSignInClient mGoogleSignInClient;
     CallbackManager callbackManager;
@@ -47,23 +49,16 @@ public class LoginActivity extends Activity implements View.OnClickListener {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE},
                     0);
 
         }
         mAuth = FirebaseAuth.getInstance();
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                    1);
 
-        }
         SharedPreferences sharedPref = this.getSharedPreferences("Icebreak",0);
-
+        setDefaultPreferences(sharedPref);
         if(sharedPref.contains("saved_name"))
         {
-
             startActivity(new Intent(this,IndexActivity.class));
             finish();
         }
@@ -141,29 +136,7 @@ public class LoginActivity extends Activity implements View.OnClickListener {
         }
 
     }
-    private void handleSignInResult(Task<GoogleSignInAccount> completedTask) {
-        try {
-            GoogleSignInAccount account = completedTask.getResult(ApiException.class);
 
-            // Signed in successfully, show authenticated UI.
-            //updateUI(account);
-            //Toast.makeText(this, "Welcome "+account.getDisplayName(), Toast.LENGTH_SHORT).show();
-            Intent profCreateInt = new Intent(this,CreateProfileActivity.class);
-            Bundle b = new Bundle();
-            b.putParcelable("accdet",account);
-            profCreateInt.putExtra("accdetailbundle",b);
-            startActivity(profCreateInt);
-            finish();
-        } catch (ApiException e) {
-            // The ApiException status code indicates the detailed failure reason.
-            // Please refer to the GoogleSignInStatusCodes class reference for more information.
-            Log.w("", "signInResult:failed code=" + e.getStatusCode());
-            Toast.makeText(this, "Login Failed", Toast.LENGTH_SHORT).show();
-            Log.v("myapp",e.getMessage());
-            e.printStackTrace();
-            //updateUI(null);
-        }
-    }
     private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
         Log.d("myapp", "firebaseAuthWithGoogle:" + acct.getId());
 

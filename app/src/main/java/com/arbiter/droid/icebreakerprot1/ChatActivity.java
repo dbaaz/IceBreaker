@@ -32,7 +32,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import static com.arbiter.droid.icebreakerprot1.Common.databaseReference;
+import static com.arbiter.droid.icebreakerprot1.Common.getDatabaseReference;
 import static com.arbiter.droid.icebreakerprot1.Common.getDate;
 import static com.arbiter.droid.icebreakerprot1.Common.randomString;
 
@@ -121,8 +121,8 @@ public class ChatActivity extends AppCompatActivity {
                 public boolean onSubmit(CharSequence input) {
                     DatabaseReference temp = node[0].push();
                     String key = temp.getParent().getKey();
-                    databaseReference.child("user_chats").child(key).child("participants").child("1").setValue(sender);
-                    databaseReference.child("user_chats").child(key).child("participants").child("2").setValue(receiver);
+                    getDatabaseReference().child("user_chats").child(key).child("participants").child("1").setValue(sender);
+                    getDatabaseReference().child("user_chats").child(key).child("participants").child("2").setValue(receiver);
                     temp.child("sender").setValue(sender);
                     temp.child("text").setValue(input.toString());
                     temp.child("timestamp").setValue(String.valueOf(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())));

@@ -27,4 +27,7 @@
         android:id="@+id/logout_btn"
         android:icon="@android:drawable/ic_lock_power_off"
         android:title="Logout" />
+    <item
+        android:id="@+id/qrbutton"
+        android:title="QR Scan" />
 </menu>

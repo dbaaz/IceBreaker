@@ -7,6 +7,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <application
         android:allowBackup="true"
@@ -86,10 +87,8 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
                 <data android:scheme="@string/fb_login_protocol_scheme" />
             </intent-filter>
         </activity>
@@ -99,7 +98,9 @@
         <activity
             android:name=".FacebookImageListActivity"
             android:label="Album Images" />
-        <activity android:name=".UsersViewRecyclerActivity"></activity>
+        <activity android:name=".UsersViewRecyclerActivity" />
+        <activity android:name=".QRScanActivity"
+            android:label="Scan QR Code"></activity>
     </application>
 
 </manifest>

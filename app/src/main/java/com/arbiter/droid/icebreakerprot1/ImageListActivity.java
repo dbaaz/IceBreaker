@@ -13,7 +13,7 @@ import java.io.IOException;
 import androidx.appcompat.app.AppCompatActivity;
 
 import static com.arbiter.droid.icebreakerprot1.Common.compressImage;
-import static com.arbiter.droid.icebreakerprot1.Common.current_user;
+import static com.arbiter.droid.icebreakerprot1.Common.getCurrentUser;
 import static com.arbiter.droid.icebreakerprot1.Common.randomString;
 import static com.arbiter.droid.icebreakerprot1.Common.uploadImageFile;
 
@@ -53,7 +53,7 @@ public class ImageListActivity extends AppCompatActivity {
                 String realPath = new RealPathUtil().getRealPath(this, data.getData());
                 try {
                     File file = compressImage(new File(realPath),getApplicationContext(),false);
-                    uploadImageFile("/usr_img/"+current_user+"/"+randomString(15),file);
+                    uploadImageFile("/usr_img/"+getCurrentUser()+"/"+randomString(15),file);
                     Bundle tmp = new Bundle();
                     tmp.putString("update_path",realPath);
                     fragmentInterface.onFragmentInteract(tmp);

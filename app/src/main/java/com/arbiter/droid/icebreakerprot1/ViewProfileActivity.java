@@ -1,7 +1,6 @@
 package com.arbiter.droid.icebreakerprot1;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
@@ -15,7 +14,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.jakewharton.threetenabp.AndroidThreeTen;
 import com.squareup.picasso.Callback;
@@ -30,7 +28,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import static com.arbiter.droid.icebreakerprot1.Common.databaseReference;
+import static com.arbiter.droid.icebreakerprot1.Common.getCurrentUser;
+import static com.arbiter.droid.icebreakerprot1.Common.getDatabaseReference;
 import static com.arbiter.droid.icebreakerprot1.Common.getScreenWidth;
 
 
@@ -45,10 +44,9 @@ public class ViewProfileActivity extends AppCompatActivity {
         setContentView(R.layout.activity_view_profile);
         final String name;
         shimmerFrameLayout = findViewById(R.id.shimmerFrameLayout);
-        final SharedPreferences sharedPrefs = this.getSharedPreferences("Icebreak",0);
         this.setTitle(name=getIntent().getExtras().getString("name"));
-        DatabaseReference fd = FirebaseDatabase.getInstance().getReference().child("users").child(name);
-        final DatabaseReference fd2 = FirebaseDatabase.getInstance().getReference().child("pings");
+        DatabaseReference fd = getDatabaseReference().child("users").child(name);
+        final DatabaseReference fd2 = getDatabaseReference().child("pings");
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         final TextView bioTextView = findViewById(R.id.textView4);
         final TextView genTextView = findViewById(R.id.genderTextView);
@@ -92,16 +90,16 @@ public class ViewProfileActivity extends AppCompatActivity {
                             String from = next.child("from").getValue().toString();
                             String to = next.child("to").getValue().toString();
                             String accepted = next.child("accepted").getValue().toString();
-                            if (from.equals(sharedPrefs.getString("saved_name", "")) && to.equals(name) && accepted.equals("no"))
+                            if (from.equals(getCurrentUser()) && to.equals(name) && accepted.equals("no"))
                                 result[0]=1;
-                            else if(from.equals(sharedPrefs.getString("saved_name", "")) && to.equals(name) && accepted.equals("yes"))
+                            else if(from.equals(getCurrentUser()) && to.equals(name) && accepted.equals("yes"))
                                 result[0]=2;
-                            else if(from.equals(name) && to.equals(sharedPrefs.getString("saved_name", "")) && accepted.equals("yes"))
+                            else if(from.equals(name) && to.equals(getCurrentUser()) && accepted.equals("yes"))
                                 result[0]=2;
                         }
                         if(result[0]==0) {
                             DatabaseReference tmp = fd2.push();
-                            tmp.child("from").setValue(sharedPrefs.getString("saved_name", ""));
+                            tmp.child("from").setValue(getCurrentUser());
                             tmp.child("to").setValue(name);
                             tmp.child("accepted").setValue("no");
                         }
@@ -112,7 +110,7 @@ public class ViewProfileActivity extends AppCompatActivity {
                             Intent i = new Intent(getApplicationContext(),ChatActivity.class);
                             i.putExtra("venname",getTitle());
                             i.putExtra("groupChat","no");
-                            i.putExtra("sender",sharedPrefs.getString("saved_name",""));
+                            i.putExtra("sender",getCurrentUser());
                             startActivity(i);
                         }
                     }
@@ -128,14 +126,13 @@ public class ViewProfileActivity extends AppCompatActivity {
         });
         final ImageView imageView2 = findViewById(R.id.picture);
         imageView2.getLayoutParams().height= (int) (getScreenWidth()/2.4F);
-
         imageView2.getLayoutParams().width= (int) (getScreenWidth()/2.4F);
         imageView2.requestLayout();
         Shimmer shimmer = new Shimmer.AlphaHighlightBuilder().build();
         final ShimmerDrawable shimmerDrawable = new ShimmerDrawable();
         shimmerDrawable.setShimmer(shimmer);
         try {
-            databaseReference.child("users").child(name).child("prof_img_url").addListenerForSingleValueEvent(new ValueEventListener() {
+            getDatabaseReference().child("users").child(name).child("prof_img_url").addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     String url;
@@ -144,7 +141,6 @@ public class ViewProfileActivity extends AppCompatActivity {
                         Picasso.get().load(url).placeholder(shimmerDrawable).into(imageView2, new Callback() {
                             @Override
                             public void onSuccess() {
-                                //(findViewById(R.id.prof_image_placeholder)).setVisibility(View.INVISIBLE);
                                 (findViewById(R.id.interestedTextView)).setVisibility(View.VISIBLE);
                                 (findViewById(R.id.textView4)).setVisibility(View.VISIBLE);
                                 (findViewById(R.id.genderTextView)).setVisibility(View.VISIBLE);
@@ -162,7 +158,6 @@ public class ViewProfileActivity extends AppCompatActivity {
                     else
                     {
                         imageView2.setImageDrawable(getResources().getDrawable(R.drawable.ic_launcher_background));
-                        //(findViewById(R.id.prof_image_placeholder)).setVisibility(View.INVISIBLE);
                         (findViewById(R.id.interestedTextView)).setVisibility(View.VISIBLE);
                         (findViewById(R.id.textView4)).setVisibility(View.VISIBLE);
                         (findViewById(R.id.genderTextView)).setVisibility(View.VISIBLE);
