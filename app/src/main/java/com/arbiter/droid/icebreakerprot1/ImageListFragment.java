@@ -61,10 +61,6 @@ public class ImageListFragment extends Fragment {
 
     public static ImageListFragment newInstance() {
         ImageListFragment fragment = new ImageListFragment();
-        Bundle args = new Bundle();
-        //args.putString(ARG_PARAM1, param1);
-        //args.putString(ARG_PARAM2, param2);
-        //fragment.setArguments(args);
         return fragment;
     }
     void populateListFromFacebookAlbum(String album_id)
