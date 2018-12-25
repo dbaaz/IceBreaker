@@ -3,6 +3,7 @@ package com.arbiter.droid.icebreakerprot1;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,13 +31,16 @@ import androidx.appcompat.widget.Toolbar;
 
 import static com.arbiter.droid.icebreakerprot1.Common.getCurrentUser;
 import static com.arbiter.droid.icebreakerprot1.Common.getDatabaseReference;
+import static com.arbiter.droid.icebreakerprot1.Common.getScreenHeight;
 import static com.arbiter.droid.icebreakerprot1.Common.getScreenWidth;
+import static com.arbiter.droid.icebreakerprot1.Common.image_viewer_mode;
 
 
 public class ViewProfileActivity extends AppCompatActivity {
 
     FragmentInterface fragmentInterface;
     ShimmerFrameLayout shimmerFrameLayout;
+    String pingNode;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,6 +51,32 @@ public class ViewProfileActivity extends AppCompatActivity {
         this.setTitle(name=getIntent().getExtras().getString("name"));
         DatabaseReference fd = getDatabaseReference().child("users").child(name);
         final DatabaseReference fd2 = getDatabaseReference().child("pings");
+        if(getIntent().hasExtra("pingnode")) {
+            pingNode = getIntent().getExtras().get("pingnode").toString();
+            FloatingActionButton fab = findViewById(R.id.fab);
+            Button acceptButton = findViewById(R.id.button9);
+            Button rejectButton = findViewById(R.id.button12);
+            acceptButton.setVisibility(View.VISIBLE);
+            rejectButton.setVisibility(View.VISIBLE);
+            acceptButton.setOnClickListener(v->{
+                getDatabaseReference().child("pings").child(pingNode).child("accepted").setValue("yes");
+                Intent i = new Intent(this,ViewProfileActivity.class);
+                i.putExtra("name",name);
+                startActivity(i);
+                finish();
+            });
+            rejectButton.setOnClickListener(v->{
+                getDatabaseReference().child("pings").child(pingNode).removeValue();
+                Intent i = new Intent(this,ViewProfileActivity.class);
+                i.putExtra("name",name);
+                startActivity(i);
+                finish();
+            });
+            View fragment = findViewById(R.id.fragment3);
+            fragment.getLayoutParams().height= (getScreenHeight()/2);
+            fragment.requestLayout();
+            fab.setVisibility(View.GONE);
+        }
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         final TextView bioTextView = findViewById(R.id.textView4);
         final TextView genTextView = findViewById(R.id.genderTextView);
@@ -66,6 +96,7 @@ public class ViewProfileActivity extends AppCompatActivity {
                 interTextView.setText("Interested In: "+dataSnapshot.child("interested").getValue().toString());
                 ageTextView.setText("Age:"+age);
                 Bundle b = new Bundle();
+                image_viewer_mode=3;
                 b.putString("target_user",getTitle().toString());
                 fragmentInterface.onFragmentInteract(b);
             }
@@ -76,53 +107,50 @@ public class ViewProfileActivity extends AppCompatActivity {
             }
         });
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                final int[] result={0};
-                fd2.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        Iterable<DataSnapshot> children = dataSnapshot.getChildren();
-                        Iterator<DataSnapshot> iterator = children.iterator();
-                        while (iterator.hasNext()) {
-                            DataSnapshot next = iterator.next();
-                            String from = next.child("from").getValue().toString();
-                            String to = next.child("to").getValue().toString();
-                            String accepted = next.child("accepted").getValue().toString();
-                            if (from.equals(getCurrentUser()) && to.equals(name) && accepted.equals("no"))
-                                result[0]=1;
-                            else if(from.equals(getCurrentUser()) && to.equals(name) && accepted.equals("yes"))
-                                result[0]=2;
-                            else if(from.equals(name) && to.equals(getCurrentUser()) && accepted.equals("yes"))
-                                result[0]=2;
-                        }
-                        if(result[0]==0) {
-                            DatabaseReference tmp = fd2.push();
-                            tmp.child("from").setValue(getCurrentUser());
-                            tmp.child("to").setValue(name);
-                            tmp.child("accepted").setValue("no");
-                        }
-                        else if(result[0]==1)
-                            Toast.makeText(ViewProfileActivity.this, "You've already pinged this user", Toast.LENGTH_SHORT).show();
-                        else
-                        {
-                            Intent i = new Intent(getApplicationContext(),ChatActivity.class);
-                            i.putExtra("venname",getTitle());
-                            i.putExtra("groupChat","no");
-                            i.putExtra("sender",getCurrentUser());
-                            startActivity(i);
-                        }
+        fab.setOnClickListener(v -> {
+            final int[] result={0};
+            fd2.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    Iterable<DataSnapshot> children = dataSnapshot.getChildren();
+                    Iterator<DataSnapshot> iterator = children.iterator();
+                    while (iterator.hasNext()) {
+                        DataSnapshot next = iterator.next();
+                        String from = next.child("from").getValue().toString();
+                        String to = next.child("to").getValue().toString();
+                        String accepted = next.child("accepted").getValue().toString();
+                        if (from.equals(getCurrentUser()) && to.equals(name) && accepted.equals("no"))
+                            result[0]=1;
+                        else if(from.equals(getCurrentUser()) && to.equals(name) && accepted.equals("yes"))
+                            result[0]=2;
+                        else if(from.equals(name) && to.equals(getCurrentUser()) && accepted.equals("yes"))
+                            result[0]=2;
                     }
-
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                    if(result[0]==0) {
+                        DatabaseReference tmp = fd2.push();
+                        tmp.child("from").setValue(getCurrentUser());
+                        tmp.child("to").setValue(name);
+                        tmp.child("accepted").setValue("no");
                     }
-                });
+                    else if(result[0]==1)
+                        Toast.makeText(ViewProfileActivity.this, "You've already pinged this user", Toast.LENGTH_SHORT).show();
+                    else
+                    {
+                        Intent i = new Intent(getApplicationContext(),ChatActivity.class);
+                        i.putExtra("venname",getTitle());
+                        i.putExtra("groupChat","no");
+                        i.putExtra("sender",getCurrentUser());
+                        startActivity(i);
+                    }
+                }
 
-            }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
+
         });
         final ImageView imageView2 = findViewById(R.id.picture);
         imageView2.getLayoutParams().height= (int) (getScreenWidth()/2.4F);

@@ -5,19 +5,29 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
+import com.facebook.AccessToken;
+import com.facebook.GraphRequest;
+import com.facebook.GraphResponse;
+import com.facebook.HttpMethod;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import static com.arbiter.droid.icebreakerprot1.Common.getCurrentUser;
 import static com.arbiter.droid.icebreakerprot1.Common.getDatabaseReference;
+import static com.arbiter.droid.icebreakerprot1.Common.getStorageReference;
+import static com.arbiter.droid.icebreakerprot1.Common.uploadImageUrl;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -44,14 +54,38 @@ public class ImageRecyclerViewFragment extends Fragment {
 
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(LayoutInflater inflater, final ViewGroup container,
                              Bundle savedInstanceState) {
 
-        View view = inflater.inflate(R.layout.fragment_image_recycler_view, container, false);
+        final View view = inflater.inflate(R.layout.fragment_image_recycler_view, container, false);
 
-        // ButterKnife.bind(this);
         findViews(view);
+        if(getActivity() instanceof  ImageListActivity)
+        {
+            ((ImageListActivity)getActivity()).setOnFragmentInteract(new ImageListActivity.FragmentInterface() {
+                @Override
+                public void onFragmentInteract(Bundle bundle) {
+                    if(bundle.containsKey("target_user")) {
+                        populateList(bundle.getString("target_user"));
+                    }
+                    else if(bundle.containsKey("album_id")) {
+                        populateListFromFacebookAlbum(bundle.getString("album_id"));
+                    }
+                }
+            });
+        }
+        else if(getActivity() instanceof ViewProfileActivity)
+        {
+            ((ViewProfileActivity)getActivity()).setOnFragmentInteract(new ViewProfileActivity.FragmentInterface() {
+                @Override
+                public void onFragmentInteract(Bundle bundle) {
+                    if(bundle.containsKey("target_user")) {
+                        populateList(bundle.getString("target_user"));
 
+                    }
+                }
+            });
+        }
         return view;
 
     }
@@ -62,8 +96,6 @@ public class ImageRecyclerViewFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         setAdapter();
-
-
     }
 
 
@@ -73,8 +105,6 @@ public class ImageRecyclerViewFragment extends Fragment {
     }
     void populateListFromFacebookAlbum(String album_id)
     {
-        /*
-        final FlexboxLayout.LayoutParams lp = new FlexboxLayout.LayoutParams(FlexboxLayout.LayoutParams.MATCH_PARENT, FlexboxLayout.LayoutParams.MATCH_PARENT);
         final ArrayList<String> image_url_list = new ArrayList<>();
         GraphRequest gr = new GraphRequest(
                 AccessToken.getCurrentAccessToken(),
@@ -87,37 +117,14 @@ public class ImageRecyclerViewFragment extends Fragment {
                     {
                         try
                         {
-                            //Log.v("myapp",response.getJSONObject().getJSONArray("data").getJSONObject(0).getString("source"));
                             JSONObject jsonObject = response.getJSONObject();
                             JSONArray data = jsonObject.getJSONArray("data");
                             for(int i=0;i<data.length();i++)
                             {
                                 image_url_list.add(data.getJSONObject(i).getString("source"));
-                                ImageView tmp = new ImageView(getContext());
-                                tmp.setTag(i);
-                                lp.setHeight(getScreenHeight()/2);
-                                tmp.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                                tmp.setLayoutParams(lp);
-                                Shimmer shimmer = new Shimmer.ColorHighlightBuilder().build();
-                                ShimmerDrawable tempShimmer = new ShimmerDrawable();
-                                tempShimmer.setShimmer(shimmer);
-                                Picasso.get().load(data.getJSONObject(i).getString("source")).placeholder(tempShimmer).transform(new CircleTransform()).into(tmp);
-                                flexboxLayout.addView(tmp);
-                                tmp.setOnClickListener(new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View v) {
-                                        Toast.makeText(v.getContext(), "Long press image to upload", Toast.LENGTH_SHORT).show();
-                                    }
-                                });
-                                tmp.setOnLongClickListener(new View.OnLongClickListener() {
-                                    @Override
-                                    public boolean onLongClick(View v) {
-                                        ImageView temp = (ImageView)v;
-                                        uploadImageUrl(image_url_list.get(Integer.parseInt(temp.getTag().toString())),getContext());
-                                        return true;
-                                    }
-                                });
+                                modelList.add(new ImageRecyclerViewModel(data.getJSONObject(i).getString("source")));
                             }
+                            mAdapter.updateList(modelList);
                         }
                         catch (Exception e)
                         {
@@ -129,47 +136,32 @@ public class ImageRecyclerViewFragment extends Fragment {
         b.putString("fields","source");
         gr.setParameters(b);
         gr.executeAsync();
-        */
     }
     void populateList(String target_user)
     {
-        //final FlexboxLayout.LayoutParams lp = new FlexboxLayout.LayoutParams(FlexboxLayout.LayoutParams.MATCH_PARENT, FlexboxLayout.LayoutParams.MATCH_PARENT);
-        getDatabaseReference().child("users").child(target_user).child("image_url").addListenerForSingleValueEvent(new ValueEventListener() {
+        getDatabaseReference().child("users").child(target_user).child("image_url").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                //flexboxLayout.removeAllViews();
+                modelList.clear();
                 Iterable<DataSnapshot> children = dataSnapshot.getChildren();
                 for(DataSnapshot child:children)
                 {
                     String url = child.child("url").getValue().toString();
-                    modelList.add(new ImageRecyclerViewModel("","",url));
+                    modelList.add(new ImageRecyclerViewModel(url));
                 }
+                mAdapter.updateList(modelList);
             }
-
             @Override
             public void onCancelled(DatabaseError databaseError) {
 
             }
         });
     }
-    void updateList(String url)
+    /*void updateList(String url)
     {
-        /*final FlexboxLayout.LayoutParams lp = new FlexboxLayout.LayoutParams(FlexboxLayout.LayoutParams.MATCH_PARENT, FlexboxLayout.LayoutParams.MATCH_PARENT);
-        ImageView tmp = new ImageView(getContext());
-        lp.setHeight(getScreenHeight()/2);
-        tmp.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        tmp.setLayoutParams(lp);
-        Shimmer shimmer = new Shimmer.ColorHighlightBuilder().build();
-        ShimmerDrawable tempShimmer = new ShimmerDrawable();
-        tempShimmer.setShimmer(shimmer);
-        try {
-            Picasso.get().load(compressImage(new File(url),getContext(),false)).placeholder(tempShimmer).into(tmp);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        flexboxLayout.addView(tmp);*/
-
-    }
+        modelList.add(new ImageRecyclerViewModel(url));
+        mAdapter.updateList(modelList);
+    }*/
 
     private void setAdapter() {
 
@@ -194,9 +186,37 @@ public class ImageRecyclerViewFragment extends Fragment {
             public void onItemClick(View view, int position, ImageRecyclerViewModel model) {
 
                 //handle item click events here
-                Toast.makeText(getActivity(), "Hey " + model.getTitle(), Toast.LENGTH_SHORT).show();
+            }
 
+            @Override
+            public void onDeleteClick(View view, int position, ImageRecyclerViewModel model) {
+                final String url = model.getUrl();
+                modelList.remove(position);
+                mAdapter.updateList(modelList);
+                getDatabaseReference().child("users").child(getCurrentUser()).child("image_url").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                            if(snapshot.child("url").getValue().toString().equals(url)) {
+                                String fileName = snapshot.child("filename").getValue().toString();
+                                getDatabaseReference().child("users").child(getCurrentUser()).child("image_url").child(snapshot.getKey()).removeValue();
+                                if(!snapshot.child("filename").getValue().toString().equals("facebook"))
+                                    getStorageReference().child("usr_img").child(getCurrentUser()).child(fileName).delete();
+                            }
+                        }
+                        ;
+                    }
 
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
+            }
+
+            @Override
+            public void onUploadClick(View view, int position, ImageRecyclerViewModel model) {
+                uploadImageUrl(model.getUrl(),getContext());
             }
         });
 

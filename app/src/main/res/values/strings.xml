@@ -6,6 +6,9 @@
         <item>Female</item>
         <item>Other</item>
     </string-array>
+    <string-array name="challenges">
+        <item>Bottom\'s Up</item>
+    </string-array>
     <string-array name="gendersinterested">
         <item>Interested in</item>
         <item>Male</item>

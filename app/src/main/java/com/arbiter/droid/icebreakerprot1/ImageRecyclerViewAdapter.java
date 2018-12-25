@@ -1,15 +1,20 @@
 package com.arbiter.droid.icebreakerprot1;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.TextView;
+
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
 import androidx.recyclerview.widget.RecyclerView;
+
+import static com.arbiter.droid.icebreakerprot1.Common.image_viewer_mode;
 
 
 /**
@@ -49,11 +54,7 @@ public class ImageRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.
         if (holder instanceof ViewHolder) {
             final ImageRecyclerViewModel model = getItem(position);
             ViewHolder genericViewHolder = (ViewHolder) holder;
-
-            genericViewHolder.itemTxtTitle.setText(model.getTitle());
-            genericViewHolder.itemTxtMessage.setText(model.getMessage());
-
-
+            Picasso.get().load(model.getUrl()).into(genericViewHolder.imgUser);
         }
     }
 
@@ -67,7 +68,6 @@ public class ImageRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.
     public void SetOnItemClickListener(final OnItemClickListener mItemClickListener) {
         this.mItemClickListener = mItemClickListener;
     }
-
     private ImageRecyclerViewModel getItem(int position) {
         return modelList.get(position);
     }
@@ -75,44 +75,50 @@ public class ImageRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.
 
     public interface OnItemClickListener {
         void onItemClick(View view, int position, ImageRecyclerViewModel model);
+        void onDeleteClick(View view, int position, ImageRecyclerViewModel model);
+        void onUploadClick(View view, int position, ImageRecyclerViewModel model);
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
 
         private ImageView imgUser;
-        private TextView itemTxtTitle;
-        private TextView itemTxtMessage;
-
-
-        // @BindView(R.id.img_user)
-        // ImageView imgUser;
-        // @BindView(R.id.item_txt_title)
-        // TextView itemTxtTitle;
-        // @BindView(R.id.item_txt_message)
-        // TextView itemTxtMessage;
-        // @BindView(R.id.radio_list)
-        // RadioButton itemTxtMessage;
-        // @BindView(R.id.check_list)
-        // CheckBox itemCheckList;
+        private ImageButton deleteBtn;
+        private ImageButton uploadBtn;
+        private int mode;
         public ViewHolder(final View itemView) {
             super(itemView);
-
             // ButterKnife.bind(this, itemView);
 
             this.imgUser = (ImageView) itemView.findViewById(R.id.img_user);
-            this.itemTxtTitle = (TextView) itemView.findViewById(R.id.item_txt_title);
-            this.itemTxtMessage = (TextView) itemView.findViewById(R.id.item_txt_message);
-
-
+            this.deleteBtn = itemView.findViewById(R.id.imageButton2);
+            this.uploadBtn = itemView.findViewById(R.id.imageButton3);
+            Log.v("myapp",mode+"");
+            if(image_viewer_mode==1)
+                this.deleteBtn.setVisibility(View.GONE);
+            else if(image_viewer_mode==2)
+                this.uploadBtn.setVisibility(View.GONE);
+            else if(image_viewer_mode==3){
+                this.deleteBtn.setVisibility(View.GONE);
+                this.uploadBtn.setVisibility(View.GONE);
+            }
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     mItemClickListener.onItemClick(itemView, getAdapterPosition(), modelList.get(getAdapterPosition()));
-
-
                 }
             });
-
+            deleteBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mItemClickListener.onDeleteClick(itemView, getAdapterPosition(),modelList.get(getAdapterPosition()));
+                }
+            });
+            uploadBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mItemClickListener.onUploadClick(itemView, getAdapterPosition(),modelList.get(getAdapterPosition()));
+                }
+            });
         }
     }
 

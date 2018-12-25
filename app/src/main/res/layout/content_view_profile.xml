@@ -21,9 +21,7 @@
             android:layout_marginTop="8dp"
             android:layout_marginEnd="8dp"
             android:layout_marginRight="8dp"
-            android:layout_marginBottom="8dp"
             android:visibility="visible"
-            app:layout_constraintBottom_toTopOf="@+id/fragment3"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/picture"
             app:layout_constraintTop_toTopOf="parent">
@@ -52,6 +50,7 @@
                     android:background="@color/background"></View>
             </LinearLayout>
         </com.facebook.shimmer.ShimmerFrameLayout>
+
         <TextView
             android:id="@+id/textView4"
             android:layout_width="wrap_content"
@@ -61,10 +60,8 @@
             android:layout_marginTop="32dp"
             android:layout_marginEnd="8dp"
             android:layout_marginRight="8dp"
-            android:layout_marginBottom="8dp"
             android:text="Bio: "
             android:visibility="invisible"
-            app:layout_constraintBottom_toTopOf="@+id/fragment3"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.505"
             app:layout_constraintStart_toEndOf="@+id/picture"
@@ -106,24 +103,6 @@
             app:layout_constraintStart_toEndOf="@+id/picture"
             app:layout_constraintTop_toBottomOf="@+id/genderTextView" />
 
-        <fragment
-            android:id="@+id/fragment3"
-            android:name="com.arbiter.droid.icebreakerprot1.ImageListFragment"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginLeft="8dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginRight="8dp"
-            android:layout_marginBottom="8dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/picture"
-            app:layout_constraintVertical_bias="1.0" />
-
         <ImageView
             android:id="@+id/picture"
             android:layout_width="wrap_content"
@@ -134,5 +113,48 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:srcCompat="@tools:sample/avatars[0]" />
+
+        <fragment
+            android:id="@+id/fragment3"
+            android:name="com.arbiter.droid.icebreakerprot1.ImageRecyclerViewFragment"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="32dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/picture" />
+
+        <Button
+            android:id="@+id/button9"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginBottom="8dp"
+            android:text="Accept"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintHorizontal_weight="0.50"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <Button
+            android:id="@+id/button12"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginBottom="8dp"
+            android:text="Reject"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_weight="0.50"
+            app:layout_constraintTop_toBottomOf="@+id/fragment3" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.core.widget.NestedScrollView>

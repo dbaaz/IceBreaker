@@ -34,26 +34,30 @@ android {
             maven { url "https://jitpack.io" }
         }
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.0-alpha2'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.0-alpha3'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.appcompat:appcompat:1.1.0-alpha01'
     //implementation 'androidx.recyclerview:recyclerview:1.1.0-alpha01'
     implementation 'com.android.support:recyclerview-v7:+'
     implementation 'androidx.cardview:cardview:1.0.0-alpha1'
-    implementation 'androidx.recyclerview:recyclerview:1.0.0-alpha1'
+    implementation 'androidx.recyclerview:recyclerview:1.0.0-alpha01'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1-alpha01'
     implementation 'com.google.android.gms:play-services-auth:16.0.1'
-    implementation 'com.google.android.material:material:1.1.0-alpha01'
+    implementation 'com.google.android.material:material:1.1.0-alpha02'
     implementation 'com.squareup.picasso:picasso:2.71828'
     implementation 'com.google.android.gms:play-services-location:16.0.0'
-    implementation 'com.google.firebase:firebase-core:16.0.4'
-    implementation 'com.google.firebase:firebase-database:16.0.4'
-    implementation 'com.google.firebase:firebase-storage:16.0.4'
+    implementation 'com.google.firebase:firebase-core:16.0.6'
+    implementation 'com.google.firebase:firebase-database:16.0.5'
+    implementation 'com.google.firebase:firebase-storage:16.0.5'
     implementation 'com.firebaseui:firebase-ui-storage:4.1.0'
     implementation 'com.github.stfalcon:chatkit:0.3.3'
     implementation 'com.jakewharton.threetenabp:threetenabp:1.1.1'
@@ -68,6 +72,8 @@ dependencies {
     implementation 'com.facebook.android:facebook-android-sdk:4.39.0'
     implementation 'org.greenrobot:eventbus:3.1.1'
     implementation 'com.github.bobekos:SimpleBarcodeScanner:1.0.20'
+    implementation 'com.jakewharton:butterknife:9.0.0-rc3'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:9.0.0-rc3'
 }
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'kotlin-android-extensions'

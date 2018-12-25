@@ -36,6 +36,7 @@ public class Common {
     private static DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
     private static String current_user="";
     private static SharedPreferences sharedPreferences;
+    static int image_viewer_mode=0;
     public static final String DATA = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZqwertyuiopasdfghjklzxcvbnm";
     public static Random RANDOM = new Random();
     public static void setDefaultPreferences(SharedPreferences sharedPreferences) {
@@ -72,6 +73,7 @@ public class Common {
     {
         return databaseReference;
     }
+    public static StorageReference getStorageReference() { return storageReference; }
     static byte[] imageViewtoByteArray(ImageView iv1)
     {
         BitmapDrawable drawable = (BitmapDrawable) iv1.getDrawable();
@@ -103,7 +105,7 @@ public class Common {
             }
         });
     }
-    static void uploadImageFile(final String dbPath, File file)
+    static void uploadImageFile(final String dbPath, final File file)
     {
         final UploadTask uploadTask = storageReference.child(dbPath).putFile(Uri.fromFile(file));
         uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
@@ -115,6 +117,7 @@ public class Common {
                     @Override
                     public void onSuccess(Uri uri) {
                         tmp.child("url").setValue(uri.toString());
+                        tmp.child("filename").setValue(dbPath.substring(dbPath.lastIndexOf('/')+1,dbPath.length()));
                     }
                 });
             }
@@ -146,6 +149,7 @@ public class Common {
                 {
                     final DatabaseReference tmp = databaseReference.child("users").child(getCurrentUser()).child("image_url").push();
                     tmp.child("url").setValue(url);
+                    tmp.child("filename").setValue("facebook");
                     Toast.makeText(context, "Import Successful", Toast.LENGTH_SHORT).show();
                 }
             }

@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import static com.arbiter.droid.icebreakerprot1.Common.compressImage;
 import static com.arbiter.droid.icebreakerprot1.Common.getCurrentUser;
+import static com.arbiter.droid.icebreakerprot1.Common.image_viewer_mode;
 import static com.arbiter.droid.icebreakerprot1.Common.randomString;
 import static com.arbiter.droid.icebreakerprot1.Common.uploadImageFile;
 
@@ -27,8 +28,16 @@ public class ImageListActivity extends AppCompatActivity {
         SharedPreferences sharedPreferences = getSharedPreferences("Icebreak",0);
         String name = sharedPreferences.getString("saved_name","");
         Bundle temp = new Bundle();
-        temp.putString("target_user",name);
-        fragmentInterface.onFragmentInteract(temp);
+        if(getIntent().getExtras().containsKey("album_id")) {
+            temp.putString("album_id",getIntent().getStringExtra("album_id"));
+            image_viewer_mode=1;
+            fragmentInterface.onFragmentInteract(temp);
+        }
+        else {
+            temp.putString("target_user", name);
+            image_viewer_mode=2;
+            fragmentInterface.onFragmentInteract(temp);
+        }
         FloatingActionButton uploadFab = findViewById(R.id.floatingActionButton2);
         uploadFab.setOnClickListener(new View.OnClickListener() {
             @Override

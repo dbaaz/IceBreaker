@@ -152,6 +152,7 @@ public class UsersViewActivity extends AppCompatActivity {
                 else if(mode==2)
                 {
                     final DatabaseReference childr = mDatabase.child("pings");
+                    Intent i = new Intent(getApplicationContext(), ViewProfileActivity.class);
                     childr.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -161,14 +162,15 @@ public class UsersViewActivity extends AppCompatActivity {
                             while(iterator.hasNext())
                             {
                                 DataSnapshot next = iterator.next();
-
                                 if(next.child("to").getValue().toString().equals(sharedPreferences.getString("saved_name",""))&&next.child("accepted").getValue().toString().equals("no"))
                                 {
-                                    String s = next.getKey().toString();
-                                    childr.child(s).child("accepted").setValue("yes");
+                                    String s = next.getKey();
+                                    i.putExtra("pingnode",s);
+                                    break;
+                                    //childr.child(s).child("accepted").setValue("yes");
                                 }
                             }
-                            Intent i = new Intent(getApplicationContext(), ViewProfileActivity.class);
+
                             name = ((TextView) view).getText().toString();
                             adap.clear();
                             adap.notifyDataSetChanged();

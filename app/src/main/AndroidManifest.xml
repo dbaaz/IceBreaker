@@ -87,8 +87,10 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
+
                 <data android:scheme="@string/fb_login_protocol_scheme" />
             </intent-filter>
         </activity>
@@ -99,8 +101,14 @@
             android:name=".FacebookImageListActivity"
             android:label="Album Images" />
         <activity android:name=".UsersViewRecyclerActivity" />
-        <activity android:name=".QRScanActivity"
-            android:label="Scan QR Code"></activity>
+        <activity
+            android:name=".QRScanActivity"
+            android:label="Scan QR Code" />
+        <activity android:name=".AttachmentListActivity" />
+        <activity android:name=".ChallengeListActivity"
+            android:label="Send a Challenge"/>
+        <activity android:name=".ChallengeViewActivity"
+            android:label="View Challenge"></activity>
     </application>
 
 </manifest>
