@@ -41,6 +41,7 @@ import static com.arbiter.droid.icebreakerprot1.Common.getCurrentUser;
 import static com.arbiter.droid.icebreakerprot1.Common.getDatabaseReference;
 import static com.arbiter.droid.icebreakerprot1.Common.getDate;
 import static com.arbiter.droid.icebreakerprot1.Common.randomString;
+import static com.arbiter.droid.icebreakerprot1.Common.setCurrentUser;
 
 public class ChatActivity extends AppCompatActivity {
     String receiver;
@@ -67,6 +68,7 @@ public class ChatActivity extends AppCompatActivity {
     protected void onStart(){
         super.onStart();
         EventBus.getDefault().register(this);
+        setCurrentUser(getSharedPreferences("Icebreak",0).getString("saved_name",""));
     }
     @Override
     protected void onCreate(Bundle savedInstanceState) {

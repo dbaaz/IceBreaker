@@ -126,22 +126,16 @@ public class IndexActivity extends AppCompatActivity
         }
         FloatingActionButton fab = findViewById(R.id.floatingActionButton);
         FloatingActionButton fab2 = findViewById(R.id.floatingActionButton3);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //Intent i = new Intent(v.getContext(),UsersViewActivity.class);
-                Intent i = new Intent(v.getContext(),UsersViewRecyclerActivity.class);
-                i.putExtra("mode",1);
-                startActivity(i);
-            }
+        fab.setOnClickListener(v -> {
+            //Intent i = new Intent(v.getContext(),UsersViewActivity.class);
+            Intent i = new Intent(v.getContext(),UsersViewRecyclerActivity.class);
+            i.putExtra("mode",1);
+            startActivity(i);
         });
-        fab2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent i = new Intent(v.getContext(),UsersViewActivity.class);
-                i.putExtra("mode",2);
-                startActivity(i);
-            }
+        fab2.setOnClickListener(v -> {
+            Intent i = new Intent(v.getContext(),UsersViewActivity.class);
+            i.putExtra("mode",2);
+            startActivity(i);
         });
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(

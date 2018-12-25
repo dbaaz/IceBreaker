@@ -9,8 +9,15 @@ import android.widget.ListView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-public class ChallengeListActivity extends AppCompatActivity {
+import static com.arbiter.droid.icebreakerprot1.Common.getPreference;
+import static com.arbiter.droid.icebreakerprot1.Common.setCurrentUser;
 
+public class ChallengeListActivity extends AppCompatActivity {
+    @Override
+    protected void onStart(){
+        super.onStart();
+        setCurrentUser(getPreference("saved_name"));
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

@@ -23,6 +23,7 @@ import butterknife.OnClick;
 import static com.arbiter.droid.icebreakerprot1.Common.getCurrentUser;
 import static com.arbiter.droid.icebreakerprot1.Common.getDatabaseReference;
 import static com.arbiter.droid.icebreakerprot1.Common.getScreenWidth;
+import static com.arbiter.droid.icebreakerprot1.Common.setCurrentUser;
 
 public class ChallengeViewActivity extends AppCompatActivity {
     @BindViews({R.id.textView9,R.id.textView11,R.id.textView12}) List<TextView> textViews;
@@ -30,6 +31,11 @@ public class ChallengeViewActivity extends AppCompatActivity {
     @BindViews({R.id.imageView2,R.id.imageView3}) List<ImageView> imageViews;
     @BindView(R.id.imageView4) ImageView challengeIcon;
     String challengenode;
+    @Override
+    protected void onStart(){
+        super.onStart();
+        setCurrentUser(getSharedPreferences("Icebreak",0).getString("saved_name",""));
+    }
     @OnClick(R.id.button3)
     public void acceptChallenge(){
         getDatabaseReference().child("challenges").child(challengenode).child("accepted").setValue("yes");

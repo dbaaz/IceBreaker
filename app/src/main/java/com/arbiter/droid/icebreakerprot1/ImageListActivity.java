@@ -4,27 +4,55 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ProgressBar;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 
 import java.io.File;
 import java.io.IOException;
 
 import androidx.appcompat.app.AppCompatActivity;
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 import static com.arbiter.droid.icebreakerprot1.Common.compressImage;
 import static com.arbiter.droid.icebreakerprot1.Common.getCurrentUser;
+import static com.arbiter.droid.icebreakerprot1.Common.getPreference;
 import static com.arbiter.droid.icebreakerprot1.Common.image_viewer_mode;
 import static com.arbiter.droid.icebreakerprot1.Common.randomString;
+import static com.arbiter.droid.icebreakerprot1.Common.setCurrentUser;
 import static com.arbiter.droid.icebreakerprot1.Common.uploadImageFile;
 
 public class ImageListActivity extends AppCompatActivity {
 
     FragmentInterface fragmentInterface;
+    @BindView(R.id.progressBar) ProgressBar uploadProgressBar;
+    int uploadCounter=0;
+    @Override
+    protected void onStart(){
+        super.onStart();
+        setCurrentUser(getPreference("saved_name"));
+    }
+    @Subscribe
+    public void showProgressBar(ShowProgressBarEvent event){
+        uploadCounter++;
+        uploadProgressBar.setVisibility(View.VISIBLE);
+    }
+    @Subscribe
+    public void hideProgressBar(HideProgressBarEvent event){
+        uploadCounter--;
+        if(uploadCounter==0)
+            uploadProgressBar.setVisibility(View.GONE);
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_image_list_activity);
+        ButterKnife.bind(this);
+        EventBus.getDefault().register(this);
         SharedPreferences sharedPreferences = getSharedPreferences("Icebreak",0);
         String name = sharedPreferences.getString("saved_name","");
         Bundle temp = new Bundle();

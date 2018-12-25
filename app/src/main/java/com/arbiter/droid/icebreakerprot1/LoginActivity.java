@@ -54,7 +54,6 @@ public class LoginActivity extends Activity implements View.OnClickListener {
 
         }
         mAuth = FirebaseAuth.getInstance();
-
         SharedPreferences sharedPref = this.getSharedPreferences("Icebreak",0);
         setDefaultPreferences(sharedPref);
         if(sharedPref.contains("saved_name"))

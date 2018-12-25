@@ -21,6 +21,8 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import org.greenrobot.eventbus.EventBus;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -108,25 +110,15 @@ public class Common {
     static void uploadImageFile(final String dbPath, final File file)
     {
         final UploadTask uploadTask = storageReference.child(dbPath).putFile(Uri.fromFile(file));
-        uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot)
-            {
-                final DatabaseReference tmp = databaseReference.child("users").child(getCurrentUser()).child("image_url").push();
-                storageReference.child(dbPath).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                    @Override
-                    public void onSuccess(Uri uri) {
-                        tmp.child("url").setValue(uri.toString());
-                        tmp.child("filename").setValue(dbPath.substring(dbPath.lastIndexOf('/')+1,dbPath.length()));
-                    }
-                });
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Log.v("myapp",e.getMessage());
-            }
-        });
+        EventBus.getDefault().post(new ShowProgressBarEvent());
+        uploadTask.addOnSuccessListener(taskSnapshot -> {
+            final DatabaseReference tmp = databaseReference.child("users").child(getCurrentUser()).child("image_url").push();
+            storageReference.child(dbPath).getDownloadUrl().addOnSuccessListener(uri -> {
+                EventBus.getDefault().post(new HideProgressBarEvent());
+                tmp.child("url").setValue(uri.toString());
+                tmp.child("filename").setValue(dbPath.substring(dbPath.lastIndexOf('/')+1,dbPath.length()));
+            });
+        }).addOnFailureListener(e -> Log.v("myapp",e.getMessage()));
     }
     static void uploadImageUrl(final String url, final Context context)
     {

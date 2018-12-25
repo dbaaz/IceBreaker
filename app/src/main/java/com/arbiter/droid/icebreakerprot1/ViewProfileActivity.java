@@ -34,6 +34,7 @@ import static com.arbiter.droid.icebreakerprot1.Common.getDatabaseReference;
 import static com.arbiter.droid.icebreakerprot1.Common.getScreenHeight;
 import static com.arbiter.droid.icebreakerprot1.Common.getScreenWidth;
 import static com.arbiter.droid.icebreakerprot1.Common.image_viewer_mode;
+import static com.arbiter.droid.icebreakerprot1.Common.setCurrentUser;
 
 
 public class ViewProfileActivity extends AppCompatActivity {
@@ -41,6 +42,11 @@ public class ViewProfileActivity extends AppCompatActivity {
     FragmentInterface fragmentInterface;
     ShimmerFrameLayout shimmerFrameLayout;
     String pingNode;
+    @Override
+    protected void onStart(){
+        super.onStart();
+        setCurrentUser(getSharedPreferences("Icebreak",0).getString("saved_name",""));
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
