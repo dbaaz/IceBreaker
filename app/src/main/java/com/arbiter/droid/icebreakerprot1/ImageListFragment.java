@@ -20,18 +20,14 @@ import com.google.android.flexbox.FlexboxLayout;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
-import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 
 import androidx.fragment.app.Fragment;
 
-import static com.arbiter.droid.icebreakerprot1.Common.compressImage;
 import static com.arbiter.droid.icebreakerprot1.Common.getDatabaseReference;
 import static com.arbiter.droid.icebreakerprot1.Common.getScreenHeight;
 import static com.arbiter.droid.icebreakerprot1.Common.uploadImageUrl;
@@ -92,7 +88,7 @@ public class ImageListFragment extends Fragment {
                                 Shimmer shimmer = new Shimmer.ColorHighlightBuilder().build();
                                 ShimmerDrawable tempShimmer = new ShimmerDrawable();
                                 tempShimmer.setShimmer(shimmer);
-                                Picasso.get().load(data.getJSONObject(i).getString("source")).placeholder(tempShimmer).transform(new CircleTransform()).into(tmp);
+                                GlideApp.with(getContext()).load(data.getJSONObject(i).getString("source")).placeholder(tempShimmer).into(tmp);
                                 flexboxLayout.addView(tmp);
                                 tmp.setOnClickListener(new View.OnClickListener() {
                                     @Override
@@ -139,7 +135,7 @@ public class ImageListFragment extends Fragment {
                     Shimmer shimmer = new Shimmer.ColorHighlightBuilder().build();
                     ShimmerDrawable tempShimmer = new ShimmerDrawable();
                     tempShimmer.setShimmer(shimmer);
-                    Picasso.get().load(url).placeholder(tempShimmer).transform(new CircleTransform()).into(tmp);
+                    GlideApp.with(getContext()).load(url).placeholder(tempShimmer).into(tmp);
                     flexboxLayout.addView(tmp);
                 }
             }
@@ -160,11 +156,11 @@ public class ImageListFragment extends Fragment {
         Shimmer shimmer = new Shimmer.ColorHighlightBuilder().build();
         ShimmerDrawable tempShimmer = new ShimmerDrawable();
         tempShimmer.setShimmer(shimmer);
-        try {
+        /*try {
             Picasso.get().load(compressImage(new File(url),getContext(),false)).placeholder(tempShimmer).into(tmp);
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        }*/
         flexboxLayout.addView(tmp);
     }
     @Override

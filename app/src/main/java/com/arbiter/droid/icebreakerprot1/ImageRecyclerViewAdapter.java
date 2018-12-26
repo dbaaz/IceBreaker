@@ -8,8 +8,6 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 
-import com.squareup.picasso.Picasso;
-
 import java.util.ArrayList;
 
 import androidx.recyclerview.widget.RecyclerView;
@@ -54,7 +52,7 @@ public class ImageRecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.
         if (holder instanceof ViewHolder) {
             final ImageRecyclerViewModel model = getItem(position);
             ViewHolder genericViewHolder = (ViewHolder) holder;
-            Picasso.get().load(model.getUrl()).into(genericViewHolder.imgUser);
+            GlideApp.with(mContext).load(model.getUrl()).thumbnail(0.4F).into(genericViewHolder.imgUser);
         }
     }
 

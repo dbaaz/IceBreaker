@@ -1,6 +1,7 @@
 package com.arbiter.droid.icebreakerprot1;
 
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -8,6 +9,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.Target;
 import com.facebook.shimmer.Shimmer;
 import com.facebook.shimmer.ShimmerDrawable;
 import com.facebook.shimmer.ShimmerFrameLayout;
@@ -17,8 +23,6 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 import com.jakewharton.threetenabp.AndroidThreeTen;
-import com.squareup.picasso.Callback;
-import com.squareup.picasso.Picasso;
 
 import org.threeten.bp.LocalDate;
 import org.threeten.bp.Period;
@@ -26,6 +30,7 @@ import org.threeten.bp.Period;
 import java.util.Iterator;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
@@ -172,22 +177,23 @@ public class ViewProfileActivity extends AppCompatActivity {
                     String url;
                     if(dataSnapshot.exists()) {
                         url = dataSnapshot.getValue().toString();
-                        Picasso.get().load(url).placeholder(shimmerDrawable).into(imageView2, new Callback() {
+                        GlideApp.with(getBaseContext()).load(url).listener(new RequestListener<Drawable>() {
                             @Override
-                            public void onSuccess() {
+                            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                                return false;
+                            }
+
+                            @Override
+                            public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
                                 (findViewById(R.id.interestedTextView)).setVisibility(View.VISIBLE);
                                 (findViewById(R.id.textView4)).setVisibility(View.VISIBLE);
                                 (findViewById(R.id.genderTextView)).setVisibility(View.VISIBLE);
                                 (findViewById(R.id.ageText)).setVisibility(View.VISIBLE);
                                 shimmerFrameLayout.stopShimmer();
                                 shimmerFrameLayout.setVisibility(View.GONE);
+                                return false;
                             }
-
-                            @Override
-                            public void onError(Exception e) {
-
-                            }
-                        });
+                        }).apply(RequestOptions.circleCropTransform()).into(imageView2);
                     }
                     else
                     {

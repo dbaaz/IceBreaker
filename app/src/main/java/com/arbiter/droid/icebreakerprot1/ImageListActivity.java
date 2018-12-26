@@ -20,7 +20,6 @@ import butterknife.ButterKnife;
 
 import static com.arbiter.droid.icebreakerprot1.Common.compressImage;
 import static com.arbiter.droid.icebreakerprot1.Common.getCurrentUser;
-import static com.arbiter.droid.icebreakerprot1.Common.getPreference;
 import static com.arbiter.droid.icebreakerprot1.Common.image_viewer_mode;
 import static com.arbiter.droid.icebreakerprot1.Common.randomString;
 import static com.arbiter.droid.icebreakerprot1.Common.setCurrentUser;
@@ -34,7 +33,7 @@ public class ImageListActivity extends AppCompatActivity {
     @Override
     protected void onStart(){
         super.onStart();
-        setCurrentUser(getPreference("saved_name"));
+        setCurrentUser(getSharedPreferences("Icebreak",0).getString("saved_name",""));
     }
     @Subscribe
     public void showProgressBar(ShowProgressBarEvent event){

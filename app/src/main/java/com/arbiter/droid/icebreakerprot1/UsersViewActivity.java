@@ -21,7 +21,6 @@ import java.util.Iterator;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import static com.arbiter.droid.icebreakerprot1.Common.getPreference;
 import static com.arbiter.droid.icebreakerprot1.Common.setCurrentUser;
 
 public class UsersViewActivity extends AppCompatActivity {
@@ -29,7 +28,7 @@ public class UsersViewActivity extends AppCompatActivity {
     @Override
     protected void onStart(){
         super.onStart();
-        setCurrentUser(getPreference("saved_name"));
+        setCurrentUser(getSharedPreferences("Icebreak",0).getString("saved_name",""));
     }
     @Override
     protected void onCreate(Bundle savedInstanceState) {

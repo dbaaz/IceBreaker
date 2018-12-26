@@ -9,7 +9,6 @@ import android.widget.TextView;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
-import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
@@ -75,7 +74,7 @@ public class ChallengeViewActivity extends AppCompatActivity {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                         String prof_img_url = dataSnapshot.getValue().toString();
-                        Picasso.get().load(prof_img_url).into(imageViews.get(0));
+                        GlideApp.with(getBaseContext()).load(prof_img_url).into(imageViews.get(0));
                     }
 
                     @Override
@@ -87,7 +86,7 @@ public class ChallengeViewActivity extends AppCompatActivity {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                         String prof_img_url = dataSnapshot.getValue().toString();
-                        Picasso.get().load(prof_img_url).into(imageViews.get(1));
+                        GlideApp.with(getBaseContext()).load(prof_img_url).into(imageViews.get(1));
                     }
 
                     @Override

@@ -14,6 +14,7 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.bumptech.glide.request.RequestOptions;
 import com.facebook.AccessToken;
 import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
@@ -33,7 +34,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.squareup.picasso.Picasso;
 import com.yalantis.ucrop.UCrop;
 
 import org.json.JSONException;
@@ -86,7 +86,7 @@ public class CreateProfileActivity extends AppCompatActivity {
                     Shimmer shimmer = new Shimmer.ColorHighlightBuilder().build();
                     ShimmerDrawable shimmerDrawable = new ShimmerDrawable();
                     shimmerDrawable.setShimmer(shimmer);
-                    Picasso.get().load(dataSnapshot.child("prof_img_url").getValue().toString()).placeholder(shimmerDrawable).into(imgview);
+                    GlideApp.with(getBaseContext()).load(dataSnapshot.child("prof_img_url").getValue().toString()).apply(RequestOptions.circleCropTransform()).into(imgview);
                     nametxt.setText(dataSnapshot.getKey());
                     String genderResult = dataSnapshot.child("gender").getValue().toString();
                     dobinput.setText(dataSnapshot.child("dob").getValue().toString());
@@ -174,7 +174,7 @@ public class CreateProfileActivity extends AppCompatActivity {
                 }
                 else
                     profileUri = acc.getPhotoUrl().toString();
-                Picasso.get().load(profileUri).placeholder(shimmerDrawable).into(imgview);
+                GlideApp.with(getBaseContext()).load(profileUri).placeholder(shimmerDrawable).into(imgview);
 
             } catch (Exception e) {
                 e.printStackTrace();

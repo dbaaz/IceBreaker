@@ -204,7 +204,7 @@ public class Common {
     }
     public static File compressImage(File file, Context context, boolean avatar) throws IOException
     {
-        int height=600,width=800,quality=25;
+        int height=1080,width=1920,quality=50;
         if(avatar) {
             height = 300;
             width = 300;
@@ -216,5 +216,6 @@ public class Common {
                 .setQuality(quality)
                 .setCompressFormat(Bitmap.CompressFormat.JPEG)
                 .compressToFile(file);
+
     }
 }

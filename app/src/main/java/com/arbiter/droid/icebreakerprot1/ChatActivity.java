@@ -15,7 +15,6 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.squareup.picasso.Picasso;
 import com.stfalcon.chatkit.commons.ImageLoader;
 import com.stfalcon.chatkit.commons.models.IMessage;
 import com.stfalcon.chatkit.commons.models.IUser;
@@ -91,7 +90,7 @@ public class ChatActivity extends AppCompatActivity {
             ImageLoader imageLoader = new ImageLoader() {
                 @Override
                 public void loadImage(ImageView imageView, @Nullable String url, @Nullable Object payload) {
-                    Picasso.get().load(url).into(imageView);
+                    GlideApp.with(getApplicationContext()).load(url).into(imageView);
                 }
             };
             DatabaseReference databaseReference=FirebaseDatabase.getInstance().getReference().child("pubs");
@@ -142,6 +141,7 @@ public class ChatActivity extends AppCompatActivity {
                     return true;
                 }
             });
+
             inputView.setAttachmentsListener(new MessageInput.AttachmentsListener() {
                 @Override
                 public void onAddAttachments() {
@@ -205,7 +205,7 @@ public class ChatActivity extends AppCompatActivity {
                  ImageLoader imageLoader = new ImageLoader() {
                      @Override
                      public void loadImage(ImageView imageView, @Nullable String url, @Nullable Object payload) {
-                         Picasso.get().load(url).into(imageView);
+                         GlideApp.with(getBaseContext()).load(url).into(imageView);
                      }
                  };
                  final byte CONTENT_TYPE_CHALLENGE=1;
